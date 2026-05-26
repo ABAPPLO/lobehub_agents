@@ -21,6 +21,7 @@ const AddButton = memo(() => {
     createHeterogeneousAgentMenuItems,
     createPageMenuItem,
     createPlatformAgentMenuItem,
+    createTeamMenuItem,
     openCreateModal,
     isMutatingAgent,
     isCreatingGroup,
@@ -43,6 +44,7 @@ const AddButton = memo(() => {
     return [
       createAgentMenuItem(),
       createGroupChatMenuItem(),
+      createTeamMenuItem(),
       createPageMenuItem(),
       ...(heterogeneousItems.length > 0
         ? [{ type: 'divider' as const }, ...heterogeneousItems]
@@ -55,6 +57,7 @@ const AddButton = memo(() => {
     createHeterogeneousAgentMenuItems,
     createPageMenuItem,
     createPlatformAgentMenuItem,
+    createTeamMenuItem,
   ]);
 
   // When viewer (no create_content): keep the icons visible per UX rule

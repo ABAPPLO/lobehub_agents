@@ -4,7 +4,14 @@ import { Icon } from '@lobehub/ui';
 import { GroupBotSquareIcon } from '@lobehub/ui/icons';
 import { App } from 'antd';
 import type { ItemType } from 'antd/es/menu/interface';
-import { BotIcon, FileTextIcon, FolderCogIcon, FolderPlus, MonitorSmartphone } from 'lucide-react';
+import {
+  BotIcon,
+  FileTextIcon,
+  FolderCogIcon,
+  FolderPlus,
+  MonitorSmartphone,
+  Users,
+} from 'lucide-react';
 import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import useSWRMutation from 'swr/mutation';
@@ -208,6 +215,46 @@ export const useCreateMenuItems = () => {
     [canCreate, mutateGroup],
   );
 
+  /**
+   * Create a team group and navigate to the team detail page.
+   * Creates a chatGroup with team config in 'draft' status.
+   */
+  const createTeam = useCallback(
+    async (hostAgentId?: string) => {
+      setIsCreatingGroup(true);
+      try {
+        const groupId = await createGroup(
+          {
+            config: {
+              ...DEFAULT_CHAT_GROUP_CHAT_CONFIG,
+              team: {
+                hostAgentId,
+                status: 'draft',
+                createdAt: new Date().toISOString(),
+              },
+            },
+            title: t('team.defaultTitle'),
+          },
+          [],
+          true,
+        );
+
+        navigate(`/team/${groupId}`);
+        await refreshAgentList();
+        await loadGroups();
+
+        return groupId;
+      } catch (error) {
+        console.error('Failed to create team:', error);
+        message.error({ content: t('sessionGroup.createGroupFailed') });
+        return undefined;
+      } finally {
+        setIsCreatingGroup(false);
+      }
+    },
+    [createGroup, navigate, refreshAgentList, loadGroups, message, t],
+  );
+
   const agentModal = useOptionalAgentModal();
   const openCreateModal = agentModal?.openCreateModal;
   const enablePlatformAgent = useUserStore(labPreferSelectors.enablePlatformAgent);
@@ -286,7 +333,6 @@ export const useCreateMenuItems = () => {
 
   /**
    * Create group chat menu item
-   * Creates an empty group and navigates to its profile page
    */
   const createGroupChatMenuItem = useCallback(
     (options?: CreateAgentOptions): ItemType => ({
@@ -380,6 +426,27 @@ export const useCreateMenuItems = () => {
     [canCreate, t, createPage],
   );
 
+  /**
+   * Create team menu item
+   * Creates a team and navigates to the team detail page
+   */
+  const createTeamMenuItem = useCallback(
+    (): ItemType => ({
+      icon: <Icon icon={Users} />,
+      key: 'newTeam',
+      label: t('newTeam'),
+      onClick: async (info) => {
+        info.domEvent?.stopPropagation();
+        if (agentModal?.openTeamBuilderModal) {
+          agentModal.openTeamBuilderModal();
+        } else {
+          await createTeam();
+        }
+      },
+    }),
+    [t, createTeam, agentModal],
+  );
+
   return {
     configMenuItem,
     createAgent,
@@ -394,6 +461,8 @@ export const useCreateMenuItems = () => {
     createPageMenuItem,
     createPlatformAgentMenuItem,
     createSessionGroupMenuItem,
+    createTeam,
+    createTeamMenuItem,
     openCreateModal,
 
     // Loading states

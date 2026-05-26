@@ -120,6 +120,12 @@ import {
 } from '@lobechat/builtin-tool-skills/client';
 import { TaskInspectors, TaskManifest, TaskRenders } from '@lobechat/builtin-tool-task/client';
 import {
+  TeamBuilderInspectors,
+  TeamBuilderManifest,
+  TeamBuilderRenders,
+  TeamBuilderStreamings,
+} from '@lobechat/builtin-tool-team-builder/client';
+import {
   UserInteractionIdentifier,
   UserInteractionInterventions,
 } from '@lobechat/builtin-tool-user-interaction/client';
@@ -191,6 +197,7 @@ export const registerBuiltinToolSurfaces = (): void => {
     [SkillStoreManifest.identifier]: SkillStoreRenders as Record<string, BuiltinRender>,
     [SkillsManifest.identifier]: SkillsRenders as Record<string, BuiltinRender>,
     [TaskManifest.identifier]: TaskRenders as Record<string, BuiltinRender>,
+    [TeamBuilderManifest.identifier]: TeamBuilderRenders as Record<string, BuiltinRender>,
     [LobeActivatorManifest.identifier]: LobeActivatorRenders as Record<string, BuiltinRender>,
     [WebBrowsingManifest.identifier]: WebBrowsingRenders as Record<string, BuiltinRender>,
     [WebOnboardingManifest.identifier]: WebOnboardingRenders as Record<string, BuiltinRender>,
@@ -240,6 +247,7 @@ export const registerBuiltinToolSurfaces = (): void => {
     [SkillStoreManifest.identifier]: SkillStoreInspectors as Record<string, BuiltinInspector>,
     [SkillsManifest.identifier]: SkillsInspectors as Record<string, BuiltinInspector>,
     [TaskManifest.identifier]: TaskInspectors as Record<string, BuiltinInspector>,
+    [TeamBuilderManifest.identifier]: TeamBuilderInspectors as Record<string, BuiltinInspector>,
     [WebBrowsingManifest.identifier]: WebBrowsingInspectors as Record<string, BuiltinInspector>,
     [WebOnboardingManifest.identifier]: WebOnboardingInspectors as Record<string, BuiltinInspector>,
     codex: CodexInspectors,
@@ -273,6 +281,7 @@ export const registerBuiltinToolSurfaces = (): void => {
     [MemoryManifest.identifier]: MemoryStreamings as Record<string, BuiltinStreaming>,
     [MessageManifest.identifier]: MessageStreamings as Record<string, BuiltinStreaming>,
     [PageAgentManifest.identifier]: PageAgentStreamings as Record<string, BuiltinStreaming>,
+    [TeamBuilderManifest.identifier]: TeamBuilderStreamings as Record<string, BuiltinStreaming>,
   });
 
   registerBuiltinInterventions({

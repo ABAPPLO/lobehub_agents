@@ -10,6 +10,7 @@ import { Search1APIImpl } from './search1api';
 import { SearXNGImpl } from './searxng';
 import { TavilyImpl } from './tavily';
 import { type SearchServiceImpl } from './type';
+import { VolcengineImpl } from './volcengine';
 
 /**
  * Available search service implementations
@@ -26,6 +27,7 @@ export enum SearchImplType {
   Search1API = 'search1api',
   SearXNG = 'searxng',
   Tavily = 'tavily',
+  Volcengine = 'volcengine',
 }
 
 /**
@@ -73,6 +75,10 @@ export const createSearchServiceImpl = (
 
     case SearchImplType.Tavily: {
       return new TavilyImpl();
+    }
+
+    case SearchImplType.Volcengine: {
+      return new VolcengineImpl();
     }
 
     default: {

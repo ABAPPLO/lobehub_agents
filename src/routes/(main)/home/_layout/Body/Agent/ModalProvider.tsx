@@ -17,6 +17,7 @@ import { useHomeStore } from '@/store/home';
 
 import ConfigGroupModal from './Modals/ConfigGroupModal';
 import CreateGroupModal from './Modals/CreateGroupModal';
+import TeamBuilderModal from './Modals/TeamBuilderModal';
 
 interface OpenCreateModalOptions {
   groupId?: string;
@@ -28,12 +29,14 @@ interface AgentModalContextValue {
   closeCreateGroupModal: () => void;
   closeGroupWizardModal: () => void;
   closeMemberSelectionModal: () => void;
+  closeTeamBuilderModal: () => void;
   openConfigGroupModal: () => void;
   openCreateGroupModal: (sessionId: string) => void;
   openCreateModal: (type: 'agent' | 'group', options?: OpenCreateModalOptions) => void;
   openCreatePlatformAgentModal: (options?: OpenCreateModalOptions) => void;
   openGroupWizardModal: (callbacks: GroupWizardCallbacks) => void;
   openMemberSelectionModal: (callbacks: MemberSelectionCallbacks) => void;
+  openTeamBuilderModal: () => void;
   setGroupWizardLoading: (loading: boolean) => void;
 }
 
@@ -135,7 +138,6 @@ interface AgentModalProviderProps {
 }
 
 export const AgentModalProvider = memo<AgentModalProviderProps>(({ children }) => {
-  // CreateGroupModal state
   const [createGroupModalOpen, setCreateGroupModalOpen] = useState(false);
   const [createGroupSessionId, setCreateGroupSessionId] = useState<string>('');
 
@@ -152,6 +154,9 @@ export const AgentModalProvider = memo<AgentModalProviderProps>(({ children }) =
   const [memberSelectionCallbacks, setMemberSelectionCallbacks] =
     useState<MemberSelectionCallbacks>({});
 
+  // TeamBuilder state
+  const [teamBuilderOpen, setTeamBuilderOpen] = useState(false);
+
   // CreateAgentModal state
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [createModalType, setCreateModalType] = useState<'agent' | 'group'>('agent');
@@ -165,11 +170,14 @@ export const AgentModalProvider = memo<AgentModalProviderProps>(({ children }) =
         setGroupWizardOpen(false);
         setMemberSelectionOpen(false);
         setCreateModalOpen(false);
+        setCreatePlatformAgentOpen(false);
+        setTeamBuilderOpen(false);
       },
       closeConfigGroupModal: () => setConfigGroupModalOpen(false),
       closeCreateGroupModal: () => setCreateGroupModalOpen(false),
       closeGroupWizardModal: () => setGroupWizardOpen(false),
       closeMemberSelectionModal: () => setMemberSelectionOpen(false),
+      closeTeamBuilderModal: () => setTeamBuilderOpen(false),
       openConfigGroupModal: () => setConfigGroupModalOpen(true),
       openCreateGroupModal: (sessionId: string) => {
         setCreateGroupSessionId(sessionId);
@@ -191,6 +199,7 @@ export const AgentModalProvider = memo<AgentModalProviderProps>(({ children }) =
         setMemberSelectionCallbacks(callbacks);
         setMemberSelectionOpen(true);
       },
+      openTeamBuilderModal: () => setTeamBuilderOpen(true),
       setGroupWizardLoading,
     }),
     [],
@@ -244,6 +253,15 @@ export const AgentModalProvider = memo<AgentModalProviderProps>(({ children }) =
         }}
         onConfirm={async (selectedAgents: string[]) => {
           await memberSelectionCallbacks.onConfirm?.(selectedAgents);
+        }}
+      />
+
+      <TeamBuilderModal
+        open={teamBuilderOpen}
+        onCancel={() => setTeamBuilderOpen(false)}
+        onSubmit={async (requirement) => {
+          setTeamBuilderOpen(false);
+          await useHomeStore.getState().sendAsTeam({ message: requirement });
         }}
       />
 

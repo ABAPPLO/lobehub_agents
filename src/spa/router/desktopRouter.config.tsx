@@ -24,6 +24,7 @@ import { workspaceHomeRouteMeta } from '@/features/Workspace/routeMeta';
 import { agentRouteMeta } from '@/routes/(main)/agent/features/routeMeta';
 import { groupRouteMeta } from '@/routes/(main)/group/features/routeMeta';
 import { settingsRouteMeta } from '@/routes/(main)/settings/features/routeMeta';
+import { teamRouteMeta } from '@/routes/(main)/team/features/routeMeta';
 import { shareTopicRouteMeta } from '@/routes/share/t/[id]/routeMeta';
 import { routeMeta } from '@/spa/router/routeMeta';
 import { SettingsTabs } from '@/store/global/initialState';
@@ -172,6 +173,32 @@ export const sharedMainAreaChildren: RouteObject[] = [
       },
     ],
     path: 'group',
+  },
+
+  // Team routes (AI-driven team builder detail view)
+  {
+    children: [
+      {
+        element: redirectElement('..'),
+        index: true,
+      },
+      {
+        children: [
+          {
+            element: dynamicElement(() => import('@/routes/(main)/team'), 'Desktop > Team Detail'),
+            handle: { meta: teamRouteMeta },
+            index: true,
+          },
+        ],
+        element: dynamicLayout(
+          () => import('@/routes/(main)/team/_layout'),
+          'Desktop > Team > Layout',
+        ),
+        errorElement: <ErrorBoundary />,
+        path: ':gid',
+      },
+    ],
+    path: 'team',
   },
 
   // Discover routes with nested structure

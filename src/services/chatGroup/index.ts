@@ -1,4 +1,4 @@
-import { type AgentGroupDetail } from '@lobechat/types';
+import { type AgentGroupDetail, type TeamConfig, type TeamPlan } from '@lobechat/types';
 
 import {
   type ChatGroupAgentItem,
@@ -157,6 +157,31 @@ class ChatGroupService {
     targetWorkspaceId: string | null,
   ): Promise<{ groupId: string } | null> => {
     return lambdaClient.group.transferGroup.mutate({ groupId, targetWorkspaceId });
+  };
+
+  // ========================
+  // Team Builder Methods
+  // ========================
+
+  updateTeamPlan = (
+    groupId: string,
+    plan: TeamPlan,
+  ): Promise<{ plan: TeamPlan; success: boolean }> => {
+    return lambdaClient.group.updateTeamPlan.mutate({ groupId, plan });
+  };
+
+  approveTeamPlan = (
+    groupId: string,
+  ): Promise<{
+    data: { agentIds: string[]; agents: any[]; tasks: any[] };
+    message: string;
+    success: boolean;
+  }> => {
+    return lambdaClient.group.approveTeamPlan.mutate({ groupId });
+  };
+
+  getTeamStatus = (groupId: string): Promise<TeamConfig | null> => {
+    return lambdaClient.group.getTeamStatus.query({ groupId });
   };
 }
 

@@ -27,6 +27,7 @@ import { SkillMaintainerManifest } from '@lobechat/builtin-tool-skill-maintainer
 import { SkillStoreManifest } from '@lobechat/builtin-tool-skill-store';
 import { SkillsManifest } from '@lobechat/builtin-tool-skills';
 import { TaskManifest } from '@lobechat/builtin-tool-task';
+import { TeamBuilderManifest } from '@lobechat/builtin-tool-team-builder';
 import { TopicReferenceManifest } from '@lobechat/builtin-tool-topic-reference';
 import { UserInteractionManifest } from '@lobechat/builtin-tool-user-interaction';
 import { VerifyToolManifest } from '@lobechat/builtin-tool-verify';
@@ -265,6 +266,13 @@ export const builtinTools: LobeBuiltinTool[] = [
     hidden: true,
     identifier: GroupManagementManifest.identifier,
     manifest: GroupManagementManifest,
+    type: 'builtin',
+  },
+  {
+    discoverable: false,
+    hidden: true,
+    identifier: TeamBuilderManifest.identifier,
+    manifest: TeamBuilderManifest,
     type: 'builtin',
   },
   {

@@ -120,6 +120,9 @@ import { settingsRouteMeta } from '@/routes/(main)/settings/features/routeMeta';
 import { ProviderDetailPage, ProviderLayout } from '@/routes/(main)/settings/provider';
 import TaskDetailRoute from '@/routes/(main)/task/[taskId]';
 import AllTasksPage from '@/routes/(main)/tasks';
+import TeamDetailPage from '@/routes/(main)/team';
+import DesktopTeamLayout from '@/routes/(main)/team/_layout';
+import { teamRouteMeta } from '@/routes/(main)/team/features/routeMeta';
 import SharePagePage from '@/routes/share/page/[id]';
 import ShareTopicPage from '@/routes/share/t/[id]';
 import ShareTopicLayout from '@/routes/share/t/[id]/_layout';
@@ -235,6 +238,29 @@ export const sharedMainAreaChildren: RouteObject[] = [
       },
     ],
     path: 'group',
+  },
+
+  // Team routes (AI-driven team builder detail view)
+  {
+    children: [
+      {
+        element: redirectElement('..'),
+        index: true,
+      },
+      {
+        children: [
+          {
+            element: <TeamDetailPage />,
+            handle: { meta: teamRouteMeta },
+            index: true,
+          },
+        ],
+        element: <DesktopTeamLayout />,
+        errorElement: <ErrorBoundary />,
+        path: ':gid',
+      },
+    ],
+    path: 'team',
   },
 
   // Discover routes with nested structure

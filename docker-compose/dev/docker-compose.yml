@@ -6,7 +6,7 @@ services:
     restart: always
     ports:
       - '${RUSTFS_PORT}:9000' # RustFS API
-      - '9001:9001' # RustFS Console
+      - '19001:9001' # RustFS Console
       - '${LOBE_PORT}:3210' # LobeChat
     command: tail -f /dev/null
     networks:
@@ -18,7 +18,7 @@ services:
     image: paradedb/paradedb:latest-pg17
     container_name: lobe-postgres
     ports:
-      - '5432:5432'
+      - '15432:5432'
     volumes:
       - './data:/var/lib/postgresql/data'
     command: ['postgres', '-c', 'shared_preload_libraries=pg_search']
@@ -40,7 +40,7 @@ services:
     image: redis:7-alpine
     container_name: lobe-redis
     ports:
-      - '6379:6379'
+      - '16379:6379'
     command: redis-server --save 60 1000 --appendonly yes
     volumes:
       - 'redis_data:/data'

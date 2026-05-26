@@ -2,7 +2,7 @@
 
 import { ActionIcon, Block, Center, DropdownMenu, Flexbox, Icon, Text, Tooltip } from '@lobehub/ui';
 import { createStaticStyles, cssVar, cx } from 'antd-style';
-import { ChevronDownIcon, PlusIcon } from 'lucide-react';
+import { BotIcon, ChevronDownIcon } from 'lucide-react';
 import { memo, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -104,7 +104,7 @@ const CreateAgentButton = memo<CreateAgentButtonProps>(({ groupId, className }) 
         {isMutatingAgent ? (
           <NeuralNetworkLoading size={14} />
         ) : (
-          <Icon icon={PlusIcon} size={'small'} />
+          <Icon icon={BotIcon} size={'small'} />
         )}
       </Center>
       <Text style={{ flex: 1 }} type={'secondary'}>

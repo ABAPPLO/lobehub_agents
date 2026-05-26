@@ -21,6 +21,7 @@ import { chatGroupReducers } from './reducers';
 import { ChatGroupCurdAction } from './slices/curd';
 import { ChatGroupLifecycleAction } from './slices/lifecycle';
 import { ChatGroupMemberAction } from './slices/member';
+import { TeamSliceAction } from './slices/team';
 
 const n = setNamespace('chatGroup');
 
@@ -276,7 +277,11 @@ type PublicActions<T> = { [K in keyof T]: T[K] };
 
 // Combined action type (public methods only)
 export type ChatGroupAction = PublicActions<
-  ChatGroupInternalAction & ChatGroupLifecycleAction & ChatGroupMemberAction & ChatGroupCurdAction
+  ChatGroupInternalAction &
+    ChatGroupLifecycleAction &
+    ChatGroupMemberAction &
+    ChatGroupCurdAction &
+    TeamSliceAction
 >;
 
 export const chatGroupAction: StateCreator<
@@ -294,4 +299,5 @@ export const chatGroupAction: StateCreator<
     new ChatGroupLifecycleAction(...params),
     new ChatGroupMemberAction(...params),
     new ChatGroupCurdAction(...params),
+    new TeamSliceAction(...params),
   ]);

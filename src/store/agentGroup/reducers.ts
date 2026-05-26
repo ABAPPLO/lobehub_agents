@@ -1,4 +1,4 @@
-import { type AgentGroupDetail } from '@lobechat/types';
+import { type AgentGroupDetail, type TeamPlan } from '@lobechat/types';
 import { produce } from 'immer';
 
 import { type ChatGroupItem } from '@/database/schemas/chatGroup';
@@ -66,6 +66,26 @@ export const chatGroupReducers = {
         }
       }
     }),
+
+  // Update team plan in a group's config
+  updateTeamPlan: (
+    state: ChatGroupState,
+    { payload }: { payload: { id: string; plan: TeamPlan } },
+  ) =>
+    produce(state, (draft: ChatGroupState) => {
+      const group = draft.groupMap[payload.id];
+      if (!group) return;
+
+      const config = (group.config as Record<string, any>) || {};
+      group.config = {
+        ...config,
+        team: {
+          ...config.team,
+          plan: payload.plan,
+          status: 'plan_review',
+        },
+      };
+    }),
 };
 
 export type ChatGroupDispatchPayloads = {
@@ -73,4 +93,5 @@ export type ChatGroupDispatchPayloads = {
   deleteGroup: string;
   loadGroups: ChatGroupItem[];
   updateGroup: { id: string; value: Partial<ChatGroupItem> };
+  updateTeamPlan: { id: string; plan: TeamPlan };
 };

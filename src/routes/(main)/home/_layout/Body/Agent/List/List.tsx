@@ -1,6 +1,7 @@
 import { type SidebarAgentItem } from '@lobechat/types';
-import { Flexbox } from '@lobehub/ui';
-import { MoreHorizontal } from 'lucide-react';
+import { Flexbox, Icon } from '@lobehub/ui';
+import { GroupBotSquareIcon } from '@lobehub/ui/icons';
+import { MoreHorizontal, Users } from 'lucide-react';
 import { type CSSProperties } from 'react';
 import { memo, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -12,6 +13,7 @@ import { useHomeStore } from '@/store/home';
 import { homeAgentListSelectors } from '@/store/home/selectors';
 import { SessionDefaultGroup } from '@/types/session';
 
+import { useCreateMenuItems } from '../../../hooks';
 import CreateAgentButton from '../CreateAgentButton';
 import GroupItem from './AgentGroupItem';
 import AgentItem from './AgentItem';
@@ -27,6 +29,7 @@ interface SessionListProps {
 const List = memo<SessionListProps>(
   ({ onMoreClick, dataSource, groupId, itemStyle, itemClassName }) => {
     const { t } = useTranslation('chat');
+    const { createGroupChatMenuItem, createTeamMenuItem } = useCreateMenuItems();
 
     // Early return for empty state
     const isEmpty = useMemo(() => dataSource.length === 0, [dataSource.length]);
@@ -39,16 +42,33 @@ const List = memo<SessionListProps>(
 
     const hasMore = isDefaultList && ungroupedAgentsCount > agentPageSize;
 
-    // Empty custom/default groups always show the Create button so the user can populate them.
-    // Non-empty lists only show it at the bottom of the default group; custom groups rely on
-    // the group header dropdown for further additions. When the default list overflows and we
-    // already render the "More" entry, hide the Create button to keep the footer compact —
-    // creation is still reachable from the group header dropdown.
     const showCreateButton = isEmpty ? groupId !== undefined : isDefaultList && !hasMore;
+
+    const showExtraCreateEntries = isDefaultList;
 
     if (isEmpty) {
       return showCreateButton ? (
-        <CreateAgentButton className={itemClassName} groupId={groupId} />
+        <Flexbox gap={1}>
+          <CreateAgentButton className={itemClassName} groupId={groupId} />
+          {showExtraCreateEntries && (
+            <>
+              <NavItem
+                icon={(props) => <Icon icon={GroupBotSquareIcon} {...props} />}
+                title={t('newGroupChat')}
+                onClick={() =>
+                  createGroupChatMenuItem().onClick?.({ domEvent: new MouseEvent('click') } as any)
+                }
+              />
+              <NavItem
+                icon={(props) => <Icon icon={Users} {...props} />}
+                title={t('newTeam')}
+                onClick={() =>
+                  createTeamMenuItem().onClick?.({ domEvent: new MouseEvent('click') } as any)
+                }
+              />
+            </>
+          )}
+        </Flexbox>
       ) : null;
     }
 
@@ -69,6 +89,24 @@ const List = memo<SessionListProps>(
           />
         )}
         {showCreateButton && <CreateAgentButton className={itemClassName} groupId={groupId} />}
+        {showExtraCreateEntries && (
+          <>
+            <NavItem
+              icon={(props) => <Icon icon={GroupBotSquareIcon} {...props} />}
+              title={t('newGroupChat')}
+              onClick={() =>
+                createGroupChatMenuItem().onClick?.({ domEvent: new MouseEvent('click') } as any)
+              }
+            />
+            <NavItem
+              icon={(props) => <Icon icon={Users} {...props} />}
+              title={t('newTeam')}
+              onClick={() =>
+                createTeamMenuItem().onClick?.({ domEvent: new MouseEvent('click') } as any)
+              }
+            />
+          </>
+        )}
       </Flexbox>
     );
   },
