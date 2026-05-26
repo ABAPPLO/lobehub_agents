@@ -39,6 +39,7 @@ export enum GroupSettingsTabs {
 export type WorkingSidebarTab = 'files' | 'params' | 'resources' | 'review';
 
 export enum SettingsTabs {
+  A2AAgent = 'a2a-agent',
   About = 'about',
   Advanced = 'advanced',
   /** @deprecated Use ServiceModel instead */
@@ -68,8 +69,8 @@ export enum SettingsTabs {
   Referral = 'referral',
   Security = 'security',
   ServiceModel = 'service-model',
-  Skill = 'skill',
 
+  Skill = 'skill',
   Stats = 'stats',
   Storage = 'storage',
   SystemTools = 'system-tools',

@@ -71,6 +71,9 @@ export const componentMap = {
   [SettingsTabs.Skill]: dynamic(() => import('../skill'), {
     loading: loading('Settings > Skill'),
   }),
+  [SettingsTabs.A2AAgent]: dynamic(() => import('../a2a-agent'), {
+    loading: loading('Settings > A2AAgent'),
+  }),
 
   [SettingsTabs.Plans]: dynamic(() => import('@/business/client/BusinessSettingPages/Plans'), {
     loading: loading('Settings > Plans'),

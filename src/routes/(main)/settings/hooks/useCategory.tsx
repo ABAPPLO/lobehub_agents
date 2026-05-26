@@ -19,6 +19,7 @@ import {
   Map,
   MessageCircleIcon,
   MonitorSmartphoneIcon,
+  NetworkIcon,
   PaletteIcon,
   Sparkles,
   TerminalSquare,
@@ -180,6 +181,11 @@ export const useCategory = () => {
         icon: MessageCircleIcon,
         key: SettingsTabs.Messenger,
         label: t('tab.messenger'),
+      },
+      {
+        icon: NetworkIcon,
+        key: SettingsTabs.A2AAgent,
+        label: t('tab.a2aAgent'),
       },
     ].filter(Boolean) as CategoryItem[];
 
