@@ -21,6 +21,7 @@ import { agentRouteMeta } from '@/routes/(main)/agent/features/routeMeta';
 import { agentTopicPageRouteMeta } from '@/routes/(main)/agent/features/topicPageRouteMeta';
 import { groupRouteMeta } from '@/routes/(main)/group/features/routeMeta';
 import { settingsRouteMeta } from '@/routes/(main)/settings/features/routeMeta';
+import { teamRouteMeta } from '@/routes/(main)/team/features/routeMeta';
 import { routeMeta } from '@/spa/router/routeMeta';
 import { dynamicElement, dynamicLayout, ErrorBoundary, redirectElement } from '@/utils/router';
 
@@ -165,6 +166,35 @@ export const desktopRoutes: RouteObject[] = [
           },
         ],
         path: 'group',
+      },
+
+      // Team routes (AI-driven team builder with enhanced detail views)
+      {
+        children: [
+          {
+            element: redirectElement('/'),
+            index: true,
+          },
+          {
+            children: [
+              {
+                element: dynamicElement(
+                  () => import('@/routes/(main)/team'),
+                  'Desktop > Team Detail',
+                ),
+                handle: { meta: teamRouteMeta },
+                index: true,
+              },
+            ],
+            element: dynamicLayout(
+              () => import('@/routes/(main)/team/_layout'),
+              'Desktop > Team > Layout',
+            ),
+            errorElement: <ErrorBoundary />,
+            path: ':gid',
+          },
+        ],
+        path: 'team',
       },
 
       // Discover routes with nested structure

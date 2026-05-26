@@ -53,6 +53,10 @@ import {
 import { SkillsInspectors, SkillsManifest } from '@lobechat/builtin-tool-skills/client';
 import { TaskInspectors, TaskManifest } from '@lobechat/builtin-tool-task/client';
 import {
+  TeamBuilderInspectors,
+  TeamBuilderManifest,
+} from '@lobechat/builtin-tool-team-builder/client';
+import {
   WebBrowsingInspectors,
   WebBrowsingManifest,
 } from '@lobechat/builtin-tool-web-browsing/client';
@@ -106,6 +110,7 @@ const BuiltinToolInspectors: Record<string, Record<string, BuiltinInspector>> = 
   [SkillStoreManifest.identifier]: SkillStoreInspectors as Record<string, BuiltinInspector>,
   [SkillsManifest.identifier]: SkillsInspectors as Record<string, BuiltinInspector>,
   [TaskManifest.identifier]: TaskInspectors as Record<string, BuiltinInspector>,
+  [TeamBuilderManifest.identifier]: TeamBuilderInspectors as Record<string, BuiltinInspector>,
   [WebBrowsingManifest.identifier]: WebBrowsingInspectors as Record<string, BuiltinInspector>,
   [WebOnboardingManifest.identifier]: WebOnboardingInspectors as Record<string, BuiltinInspector>,
   codex: {

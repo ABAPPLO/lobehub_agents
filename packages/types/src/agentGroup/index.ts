@@ -2,6 +2,98 @@ import { z } from 'zod';
 
 import type { AgentItem } from '../agent';
 
+// ============================================================
+// Team Builder Types
+// ============================================================
+
+export type TeamStatus =
+  | 'assembling'
+  | 'completed'
+  | 'draft'
+  | 'evaluating'
+  | 'executing'
+  | 'failed'
+  | 'plan_review';
+
+export interface EvaluationCriterion {
+  /** What to evaluate */
+  criterion: string;
+  /** How to measure */
+  measurement: string;
+  /** Pass threshold description */
+  threshold: string;
+  /** Weight (0-1) */
+  weight: number;
+}
+
+export interface EvaluationResult {
+  criterion: string;
+  feedback: string;
+  passed: boolean;
+  score: number;
+}
+
+export interface TeamMemberPlan {
+  /** The created agent ID (populated after assembly) */
+  agentId?: string;
+  /** Whether this member has been approved by user */
+  approved: boolean;
+  /** Suggested avatar emoji */
+  avatar: string;
+  /** Why this role is needed */
+  rationale: string;
+  /** Proposed system prompt */
+  systemRole: string;
+  /** Suggested role name */
+  title: string;
+  /** Suggested tools */
+  tools?: string[];
+}
+
+export interface TeamTaskPlan {
+  /** Which member should handle this (by title) */
+  assigneeTitle: string;
+  /** Dependencies on other tasks (by name) */
+  dependsOn?: string[];
+  /** Task instruction */
+  instruction: string;
+  /** Task name */
+  name: string;
+  /** Priority */
+  priority?: number;
+  /** Sort order */
+  sortOrder: number;
+}
+
+export interface TeamPlan {
+  /** Host agent's analysis of the requirement */
+  analysis: string;
+  /** Evaluation criteria defined by host agent */
+  evaluationCriteria: EvaluationCriterion[];
+  /** Proposed team members */
+  members: TeamMemberPlan[];
+  /** The user's original requirement text */
+  requirement: string;
+  /** Overall strategy description */
+  strategy: string;
+  /** Task breakdown */
+  tasks: TeamTaskPlan[];
+}
+
+export interface TeamConfig {
+  completedAt?: string;
+  createdAt?: string;
+  evaluationResults?: EvaluationResult[];
+  /** ID of the host agent that created the team */
+  hostAgentId?: string;
+  plan?: TeamPlan;
+  status: TeamStatus;
+}
+
+// ============================================================
+// Chat Group Config
+// ============================================================
+
 export interface LobeChatGroupMetaConfig {
   avatar?: string;
   backgroundColor?: string;
@@ -17,10 +109,71 @@ export interface LobeChatGroupChatConfig {
   openingQuestions?: string[];
   revealDM?: boolean;
   systemPrompt?: string;
+  /** Team-specific configuration for AI-driven team builder */
+  team?: TeamConfig;
 }
 
 // Database config type (flat structure)
 export type LobeChatGroupConfig = LobeChatGroupChatConfig;
+
+const EvaluationCriterionSchema = z.object({
+  criterion: z.string(),
+  measurement: z.string(),
+  threshold: z.string(),
+  weight: z.number(),
+});
+
+const EvaluationResultSchema = z.object({
+  criterion: z.string(),
+  feedback: z.string(),
+  passed: z.boolean(),
+  score: z.number(),
+});
+
+const TeamMemberPlanSchema = z.object({
+  agentId: z.string().optional(),
+  approved: z.boolean(),
+  avatar: z.string(),
+  rationale: z.string(),
+  systemRole: z.string(),
+  title: z.string(),
+  tools: z.array(z.string()).optional(),
+});
+
+const TeamTaskPlanSchema = z.object({
+  assigneeTitle: z.string(),
+  dependsOn: z.array(z.string()).optional(),
+  instruction: z.string(),
+  name: z.string(),
+  priority: z.number().optional(),
+  sortOrder: z.number(),
+});
+
+const TeamPlanSchema = z.object({
+  analysis: z.string(),
+  evaluationCriteria: z.array(EvaluationCriterionSchema),
+  members: z.array(TeamMemberPlanSchema),
+  requirement: z.string(),
+  strategy: z.string(),
+  tasks: z.array(TeamTaskPlanSchema),
+});
+
+const TeamConfigSchema = z.object({
+  completedAt: z.string().optional(),
+  createdAt: z.string().optional(),
+  evaluationResults: z.array(EvaluationResultSchema).optional(),
+  hostAgentId: z.string().optional(),
+  plan: TeamPlanSchema.optional(),
+  status: z.enum([
+    'assembling',
+    'completed',
+    'draft',
+    'evaluating',
+    'executing',
+    'failed',
+    'plan_review',
+  ]),
+});
 
 // Zod schema for ChatGroupConfig (database insert)
 export const ChatGroupConfigSchema = z.object({
@@ -30,6 +183,7 @@ export const ChatGroupConfigSchema = z.object({
   openingQuestions: z.array(z.string()).optional(),
   revealDM: z.boolean().optional(),
   systemPrompt: z.string().optional(),
+  team: TeamConfigSchema.optional(),
 });
 
 // Zod schema for inserting ChatGroup

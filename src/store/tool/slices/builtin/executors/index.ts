@@ -16,6 +16,7 @@ import { lobeAgentExecutor } from '@lobechat/builtin-tool-lobe-agent/client';
 import { localSystemExecutor } from '@lobechat/builtin-tool-local-system/client';
 import { memoryExecutor } from '@lobechat/builtin-tool-memory/executor';
 import { taskExecutor } from '@lobechat/builtin-tool-task/client';
+import { teamBuilderExecutor } from '@lobechat/builtin-tool-team-builder/executor';
 
 import type { BuiltinToolContext, BuiltinToolResult, IBuiltinToolExecutor } from '../types';
 import { activatorExecutor } from './lobe-activator';
@@ -149,6 +150,7 @@ registerExecutors([
   skillStoreExecutor,
   skillsExecutor,
   taskExecutor,
+  teamBuilderExecutor,
   activatorExecutor,
   topicReferenceExecutor,
   userInteractionExecutor,

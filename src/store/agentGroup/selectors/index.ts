@@ -1,7 +1,9 @@
 import { agentGroupByIdSelectors } from './byId';
 import { currentSelectors } from './current';
+import { teamSelectors } from './team';
 
 export { agentGroupByIdSelectors } from './byId';
+export { teamSelectors } from './team';
 
 export const agentGroupSelectors = {
   ...currentSelectors,
@@ -14,4 +16,5 @@ export const agentGroupSelectors = {
   getGroupMemberCount: agentGroupByIdSelectors.groupMemberCount,
   getGroupMembers: agentGroupByIdSelectors.groupMembers,
   getGroupMeta: agentGroupByIdSelectors.groupMeta,
+  ...teamSelectors,
 };

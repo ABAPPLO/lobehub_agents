@@ -1,4 +1,4 @@
-import { InsertChatGroupSchema } from '@lobechat/types';
+import { InsertChatGroupSchema, type TeamPlan } from '@lobechat/types';
 import { z } from 'zod';
 
 import { AgentModel } from '@/database/models/agent';
@@ -9,6 +9,7 @@ import { type ChatGroupConfig } from '@/database/types/chatGroup';
 import { authedProcedure, router } from '@/libs/trpc/lambda';
 import { serverDatabase } from '@/libs/trpc/lambda/middleware';
 import { AgentGroupService } from '@/server/services/agentGroup';
+import { TaskService } from '@/server/services/task';
 
 /**
  * Custom schema for agent member input, replacing drizzle-generated insertAgentSchema
@@ -48,6 +49,7 @@ const agentGroupProcedure = authedProcedure.use(serverDatabase).use(async (opts)
       agentGroupService: new AgentGroupService(ctx.serverDB, ctx.userId),
       agentModel: new AgentModel(ctx.serverDB, ctx.userId),
       chatGroupModel: new ChatGroupModel(ctx.serverDB, ctx.userId),
+      taskService: new TaskService(ctx.serverDB, ctx.userId),
       userModel: new UserModel(ctx.serverDB, ctx.userId),
     },
   });
@@ -319,6 +321,153 @@ export const agentGroupRouter = router({
           input.value.config as ChatGroupConfig | null,
         ),
       });
+    }),
+
+  // ========================
+  // Team Builder Procedures
+  // ========================
+
+  /**
+   * Update the team plan in the group config.
+   * Called by the host agent's tool executor after generating a plan.
+   */
+  updateTeamPlan: agentGroupProcedure
+    .input(
+      z.object({
+        groupId: z.string(),
+        plan: z.any(), // TeamPlanSchema - validated at tool layer
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      const group = await ctx.chatGroupModel.findById(input.groupId);
+      if (!group) throw new Error('Group not found');
+
+      const config = (group.config as ChatGroupConfig) || {};
+      const teamConfig = config.team || { status: 'draft' };
+
+      const updatedConfig: ChatGroupConfig = {
+        ...config,
+        team: {
+          ...teamConfig,
+          plan: input.plan as TeamPlan,
+          status: 'plan_review',
+        },
+      };
+
+      await ctx.chatGroupModel.update(input.groupId, {
+        config: ctx.agentGroupService.normalizeGroupConfig(updatedConfig),
+      });
+
+      return { plan: input.plan, success: true };
+    }),
+
+  /**
+   * Approve a team plan and assemble the team.
+   * Creates virtual agents, adds them to the group, and creates tasks.
+   */
+  approveTeamPlan: agentGroupProcedure
+    .input(
+      z.object({
+        groupId: z.string(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      const group = await ctx.agentGroupRepo.findByIdWithAgents(input.groupId);
+      if (!group) throw new Error('Group not found');
+
+      const config = (group.config as ChatGroupConfig) || {};
+      const teamConfig = config.team;
+      if (!teamConfig?.plan) throw new Error('No team plan found');
+
+      const plan = teamConfig.plan;
+      const approvedMembers = plan.members.filter((m) => m.approved);
+
+      if (approvedMembers.length === 0) throw new Error('No approved members in plan');
+
+      // Update status to assembling
+      await ctx.chatGroupModel.update(input.groupId, {
+        config: ctx.agentGroupService.normalizeGroupConfig({
+          ...config,
+          team: { ...teamConfig, status: 'assembling' },
+        }),
+      });
+
+      // 1. Create virtual agents for approved members
+      const agentConfigs = approvedMembers.map((member) => ({
+        avatar: member.avatar,
+        description: member.rationale,
+        systemRole: member.systemRole,
+        title: member.title,
+        virtual: true,
+        ...(member.tools?.length ? { plugins: member.tools } : {}),
+      }));
+
+      const createdAgents = await ctx.agentModel.batchCreate(agentConfigs);
+      const agentIdByTitle = new Map(
+        createdAgents.map((agent, i) => [approvedMembers[i].title, agent.id]),
+      );
+
+      // 2. Add agents to the group
+      const agentIds = createdAgents.map((a) => a.id);
+      await ctx.chatGroupModel.addAgentsToGroup(input.groupId, agentIds);
+
+      // 3. Create tasks from plan
+      const tasks = await Promise.all(
+        plan.tasks.map(async (task) => {
+          const assigneeId = agentIdByTitle.get(task.assigneeTitle);
+          return ctx.taskService.createTask({
+            assigneeAgentId: assigneeId,
+            description: task.instruction,
+            instruction: task.instruction,
+            name: task.name,
+            priority: task.priority,
+            sortOrder: task.sortOrder,
+          });
+        }),
+      );
+
+      // 4. Update config with agent IDs and executing status
+      const updatedPlan: TeamPlan = {
+        ...plan,
+        members: plan.members.map((m) => {
+          const agentId = agentIdByTitle.get(m.title);
+          return agentId ? { ...m, agentId } : m;
+        }),
+      };
+
+      await ctx.chatGroupModel.update(input.groupId, {
+        config: ctx.agentGroupService.normalizeGroupConfig({
+          ...config,
+          team: {
+            ...teamConfig,
+            plan: updatedPlan,
+            status: 'executing',
+          },
+        }),
+      });
+
+      return {
+        data: {
+          agentIds,
+          agents: createdAgents,
+          tasks,
+        },
+        message: 'Team assembled successfully',
+        success: true,
+      };
+    }),
+
+  /**
+   * Get the current team status including plan and progress.
+   */
+  getTeamStatus: agentGroupProcedure
+    .input(z.object({ groupId: z.string() }))
+    .query(async ({ input, ctx }) => {
+      const group = await ctx.chatGroupModel.findById(input.groupId);
+      if (!group) throw new Error('Group not found');
+
+      const config = (group.config as ChatGroupConfig) || {};
+      return config.team || null;
     }),
 });
 

@@ -199,6 +199,88 @@ export class HomeInputActionImpl {
     }
   };
 
+  sendAsTeam = async ({ editorData, message }: SendMessageWithEditorParams): Promise<string> => {
+    this.#set({ homeInputLoading: true }, false, n('sendAsTeam/start'));
+
+    try {
+      const agentState = getAgentStoreState();
+
+      // 1. Get model/provider config from inbox agent
+      const inboxAgentId = builtinAgentSelectors.inboxAgentId(agentState);
+      const inboxConfig = inboxAgentId
+        ? agentSelectors.getAgentConfigById(inboxAgentId)(agentState)
+        : null;
+      const model = inboxConfig?.model;
+      const provider = inboxConfig?.provider;
+
+      // 2. Create team group with team config
+      const { group } = await chatGroupService.createGroup({
+        config: {
+          systemPrompt: message,
+          team: {
+            status: 'draft',
+            createdAt: new Date().toISOString(),
+          },
+        },
+        title: message?.slice(0, 50) || 'New Team',
+      });
+
+      // 3. Load groups and refresh
+      const groupStore = getChatGroupStoreState();
+      await groupStore.loadGroups();
+
+      // 4. Refresh sidebar agent list
+      this.#get().refreshAgentList();
+
+      useGroupProfileStore.getState().setChatPanelExpanded(true);
+
+      // 5. Navigate to Group profile page
+      getStableNavigate()?.(`/group/${group.id}/profile`);
+
+      // 6. Hydrate groupAgentBuilder and send team-building prompt
+      const groupAgentBuilderId = await ensureBuiltinAgentHydrated(
+        BUILTIN_AGENT_SLUGS.groupAgentBuilder,
+      );
+
+      if (groupAgentBuilderId) {
+        if (model && provider) {
+          await agentState.updateAgentConfigById(groupAgentBuilderId, { model, provider });
+        }
+
+        const teamPrompt = [
+          '【团队构建 - 第一步：创建项目负责人】',
+          '',
+          '你的任务只有一个：根据以下用户需求，创建一个「项目负责人」助手。',
+          '',
+          '项目负责人助手的能力要求：',
+          '- 全面理解并分析项目需求、目标和技术要求',
+          '- 规划项目需要哪些角色，制定团队组建计划',
+          '- 与用户对话，细化需求并汇报进展',
+          '- 需要创建角色时，调用你来创建新的助手',
+          '- 协调各角色助手之间的协作和任务分配',
+          '',
+          '创建完项目负责人后，将控制权移交给项目负责人，由它主导后续的所有沟通和协调。你只在项目负责人需要创建新助手时才参与。',
+          '',
+          `用户需求：${message}`,
+        ].join('\n');
+
+        const { sendMessage } = useChatStore.getState();
+        await sendMessage({
+          context: { agentId: groupAgentBuilderId, scope: 'group_agent_builder' },
+          editorData,
+          message: teamPrompt,
+        });
+      }
+
+      // 7. Clear mode
+      this.#set({ inputActiveMode: null }, false, n('sendAsTeam/clearMode'));
+
+      return group.id;
+    } finally {
+      this.#set({ homeInputLoading: false }, false, n('sendAsTeam/end'));
+    }
+  };
+
   sendAsResearch = async (message: string): Promise<void> => {
     // TODO: Implement DeepResearch mode
     console.info('sendAsResearch:', message);

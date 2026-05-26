@@ -30,6 +30,8 @@ import { PageAgentManifest, PageAgentRenders } from '@lobechat/builtin-tool-page
 import { SkillStoreManifest, SkillStoreRenders } from '@lobechat/builtin-tool-skill-store/client';
 import { SkillsManifest, SkillsRenders } from '@lobechat/builtin-tool-skills/client';
 import { TaskManifest, TaskRenders } from '@lobechat/builtin-tool-task/client';
+import { TeamBuilderManifest } from '@lobechat/builtin-tool-team-builder';
+import { TeamBuilderRenders } from '@lobechat/builtin-tool-team-builder/client';
 import {
   WebBrowsingManifest,
   WebBrowsingRenders,
@@ -73,6 +75,7 @@ const BuiltinToolsRenders: Record<string, Record<string, BuiltinRender>> = {
   [SkillStoreManifest.identifier]: SkillStoreRenders as Record<string, BuiltinRender>,
   [SkillsManifest.identifier]: SkillsRenders as Record<string, BuiltinRender>,
   [TaskManifest.identifier]: TaskRenders as Record<string, BuiltinRender>,
+  [TeamBuilderManifest.identifier]: TeamBuilderRenders as Record<string, BuiltinRender>,
   [LobeActivatorManifest.identifier]: LobeActivatorRenders as Record<string, BuiltinRender>,
   [WebBrowsingManifest.identifier]: WebBrowsingRenders as Record<string, BuiltinRender>,
   [WebOnboardingManifest.identifier]: WebOnboardingRenders as Record<string, BuiltinRender>,
