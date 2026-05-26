@@ -35,7 +35,7 @@ export interface CustomPluginParams {
     args?: string[];
     env?: Record<string, string>;
     command?: string;
-    type: 'http' | 'stdio' | 'cloud';
+    type: 'http' | 'stdio' | 'cloud' | 'a2a';
     url?: string;
     cloudEndPoint?: string; // Cloud gateway endpoint for cloud type
     // Added authentication configuration support
@@ -46,6 +46,7 @@ export interface CustomPluginParams {
     };
     // Added headers configuration support
     headers?: Record<string, string>;
+    capabilities?: string[];
   };
   useProxy?: boolean;
 }

@@ -53,6 +53,7 @@ import {
   builtinToolSelectors,
   klavisStoreSelectors,
   lobehubSkillStoreSelectors,
+  pluginSelectors,
   toolSelectors,
 } from '@/store/tool/selectors';
 import { KlavisServerStatus } from '@/store/tool/slices/klavisStore';
@@ -272,6 +273,26 @@ export const contextEngineering = async ({
               type: 'lobehub-skill',
             });
           }
+        }
+
+        // Phase D — A2A custom tools
+        const allPlugins = pluginSelectors.installedPlugins(toolState);
+        const a2aPlugins = allPlugins.filter(
+          (p) => p.type === 'customPlugin' && p.customParams?.mcp?.type === 'a2a',
+        );
+
+        for (const plugin of a2aPlugins) {
+          const params = plugin.customParams?.mcp;
+          officialTools.push({
+            capabilities: params?.capabilities,
+            description: plugin.manifest?.meta?.description || `A2A Agent`,
+            enabled: enabledPlugins.includes(plugin.identifier),
+            executionMode: 'local',
+            identifier: plugin.identifier,
+            installed: true,
+            name: plugin.manifest?.meta?.title || plugin.identifier,
+            type: 'a2a',
+          });
         }
 
         groupAgentBuilderContext = {

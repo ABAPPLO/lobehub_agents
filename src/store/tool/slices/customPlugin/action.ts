@@ -45,6 +45,9 @@ export class CustomPluginActionImpl {
     const url = plugin.customParams?.mcp?.url;
     if (!plugin.customParams?.mcp || !url) return;
 
+    // A2A plugins don't need manifest refresh
+    if (plugin.customParams.mcp.type === 'a2a') return;
+
     try {
       updateInstallLoadingState(id, true);
       const manifest = await mcpService.getStreamableMcpServerManifest({

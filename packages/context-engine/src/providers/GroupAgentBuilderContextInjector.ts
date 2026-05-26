@@ -32,18 +32,22 @@ export interface GroupMemberItem {
  * Official tool item for Group Agent Builder context
  */
 export interface GroupOfficialToolItem {
+  /** A2A capabilities (e.g. 'ffmpeg', '剪映') */
+  capabilities?: string[];
   /** Tool description */
   description?: string;
   /** Whether the tool is enabled for supervisor agent */
   enabled?: boolean;
+  /** Execution mode: 'local' for A2A tools, 'cloud' otherwise */
+  executionMode?: 'cloud' | 'local';
   /** Tool identifier */
   identifier: string;
   /** Whether the tool is installed/connected */
   installed?: boolean;
   /** Tool display name */
   name: string;
-  /** Tool type: 'builtin' for built-in tools, 'klavis' for LobeHub Mcp servers, 'lobehub-skill' for LobeHub Skill providers */
-  type: 'builtin' | 'klavis' | 'lobehub-skill';
+  /** Tool type */
+  type: 'builtin' | 'klavis' | 'lobehub-skill' | 'a2a';
 }
 
 /**
@@ -235,6 +239,26 @@ const defaultFormatGroupContext = (context: GroupAgentBuilderContext): string =>
         })
         .join('\n');
       toolsSections.push(`  <lobehub_skill_tools>\n${lobehubSkillItems}\n  </lobehub_skill_tools>`);
+    }
+
+    const a2aTools = context.officialTools.filter((t) => t.type === 'a2a');
+
+    if (a2aTools.length > 0) {
+      const a2aItems = a2aTools
+        .map((t) => {
+          const attrs = [
+            `id="${t.identifier}"`,
+            `enabled="${t.enabled ? 'true' : 'false'}"`,
+            `mode="local"`,
+            t.capabilities ? `capabilities="${t.capabilities.map(escapeXml).join(',')}"` : '',
+          ]
+            .filter(Boolean)
+            .join(' ');
+          const desc = t.description ? ` - ${escapeXml(t.description)}` : '';
+          return `    <tool ${attrs}>${escapeXml(t.name)}${desc}</tool>`;
+        })
+        .join('\n');
+      toolsSections.push(`  <a2a_tools>\n${a2aItems}\n  </a2a_tools>`);
     }
 
     if (toolsSections.length > 0) {
