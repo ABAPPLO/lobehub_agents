@@ -32,6 +32,24 @@ export class CustomPluginActionImpl {
   installCustomPlugin = async (value: LobeToolCustomPlugin): Promise<void> => {
     await pluginService.createCustomPlugin(value);
 
+    // For A2A plugins, auto-discover manifest from Agent Card
+    if (value.customParams?.mcp?.type === 'a2a' && value.customParams?.mcp?.url) {
+      try {
+        const identifier = value.identifier;
+        const manifest = await mcpService.getA2AAgentManifest({
+          identifier,
+          metadata: {
+            avatar: value.customParams.avatar,
+            description: value.customParams.description,
+          },
+          url: value.customParams.mcp.url,
+        });
+        await pluginService.updatePluginManifest(identifier, manifest);
+      } catch (error) {
+        console.warn('Failed to auto-discover A2A manifest:', error);
+      }
+    }
+
     await this.#get().refreshPlugins();
     this.#set({ newCustomPlugin: defaultCustomPlugin }, false, n('saveToCustomPluginList'));
   };
@@ -45,8 +63,37 @@ export class CustomPluginActionImpl {
     const url = plugin.customParams?.mcp?.url;
     if (!plugin.customParams?.mcp || !url) return;
 
-    // A2A plugins don't need manifest refresh
-    if (plugin.customParams.mcp.type === 'a2a') return;
+    // A2A plugins: discover manifest from Agent Card
+    if (plugin.customParams.mcp.type === 'a2a') {
+      try {
+        updateInstallLoadingState(id, true);
+        const manifest = await mcpService.getA2AAgentManifest({
+          identifier: plugin.identifier,
+          metadata: {
+            avatar: plugin.customParams.avatar,
+            description: plugin.customParams.description,
+          },
+          url,
+        });
+        updateInstallLoadingState(id, false);
+
+        await pluginService.updatePluginManifest(id, manifest);
+        await refreshPlugins();
+      } catch (error) {
+        updateInstallLoadingState(id, false);
+        console.error(error);
+        const err = error as PluginInstallError;
+
+        const meta = pluginSelectors.getPluginMetaById(id)(this.#get());
+        const name = pluginHelpers.getPluginTitle(meta);
+
+        notification.error({
+          description: t(`error.${err.message}`, { error: err.cause, ns: 'plugin' }),
+          message: t('error.reinstallError', { name, ns: 'plugin' }),
+        });
+      }
+      return;
+    }
 
     try {
       updateInstallLoadingState(id, true);

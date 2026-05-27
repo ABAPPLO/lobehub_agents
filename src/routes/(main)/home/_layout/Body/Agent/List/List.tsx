@@ -1,4 +1,5 @@
 import { type SidebarAgentItem } from '@lobechat/types';
+import type { IconProps } from '@lobehub/ui';
 import { Flexbox, Icon } from '@lobehub/ui';
 import { GroupBotSquareIcon } from '@lobehub/ui/icons';
 import { MoreHorizontal, Users } from 'lucide-react';
@@ -17,6 +18,17 @@ import { useCreateMenuItems } from '../../../hooks';
 import CreateAgentButton from '../CreateAgentButton';
 import GroupItem from './AgentGroupItem';
 import AgentItem from './AgentItem';
+
+const triggerMenuItemClick = (
+  item:
+    | ReturnType<typeof useCreateMenuItems>['createGroupChatMenuItem']
+    | ReturnType<typeof useCreateMenuItems>['createTeamMenuItem'],
+) => {
+  const menuItem = item();
+  if (menuItem && 'onClick' in menuItem && typeof menuItem.onClick === 'function') {
+    menuItem.onClick({ domEvent: new MouseEvent('click') } as any);
+  }
+};
 
 interface SessionListProps {
   dataSource: SidebarAgentItem[];
@@ -46,6 +58,9 @@ const List = memo<SessionListProps>(
 
     const showExtraCreateEntries = isDefaultList;
 
+    const renderGroupChatIcon = (props: IconProps) => <Icon {...props} icon={GroupBotSquareIcon} />;
+    const renderTeamIcon = (props: IconProps) => <Icon {...props} icon={Users} />;
+
     if (isEmpty) {
       return showCreateButton ? (
         <Flexbox gap={1}>
@@ -53,18 +68,14 @@ const List = memo<SessionListProps>(
           {showExtraCreateEntries && (
             <>
               <NavItem
-                icon={(props) => <Icon icon={GroupBotSquareIcon} {...props} />}
+                icon={renderGroupChatIcon}
                 title={t('newGroupChat')}
-                onClick={() =>
-                  createGroupChatMenuItem().onClick?.({ domEvent: new MouseEvent('click') } as any)
-                }
+                onClick={() => triggerMenuItemClick(createGroupChatMenuItem)}
               />
               <NavItem
-                icon={(props) => <Icon icon={Users} {...props} />}
+                icon={renderTeamIcon}
                 title={t('newTeam')}
-                onClick={() =>
-                  createTeamMenuItem().onClick?.({ domEvent: new MouseEvent('click') } as any)
-                }
+                onClick={() => triggerMenuItemClick(createTeamMenuItem)}
               />
             </>
           )}
@@ -92,18 +103,14 @@ const List = memo<SessionListProps>(
         {showExtraCreateEntries && (
           <>
             <NavItem
-              icon={(props) => <Icon icon={GroupBotSquareIcon} {...props} />}
+              icon={renderGroupChatIcon}
               title={t('newGroupChat')}
-              onClick={() =>
-                createGroupChatMenuItem().onClick?.({ domEvent: new MouseEvent('click') } as any)
-              }
+              onClick={() => triggerMenuItemClick(createGroupChatMenuItem)}
             />
             <NavItem
-              icon={(props) => <Icon icon={Users} {...props} />}
+              icon={renderTeamIcon}
               title={t('newTeam')}
-              onClick={() =>
-                createTeamMenuItem().onClick?.({ domEvent: new MouseEvent('click') } as any)
-              }
+              onClick={() => triggerMenuItemClick(createTeamMenuItem)}
             />
           </>
         )}

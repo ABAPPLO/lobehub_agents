@@ -157,7 +157,14 @@ export interface CloudMCPParams {
   url: string;
 }
 
-export type MCPClientParams = HttpMCPClientParams | StdioMCPParams;
+export interface A2AMCPParams {
+  capabilities?: string[];
+  name: string;
+  type: 'a2a';
+  url: string;
+}
+
+export type MCPClientParams = HttpMCPClientParams | StdioMCPParams | A2AMCPParams;
 
 export type MCPErrorType =
   | 'CONNECTION_FAILED'

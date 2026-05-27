@@ -102,7 +102,30 @@ export interface LobeChatGroupMetaConfig {
   title: string;
 }
 
+export interface A2ARelayConfig {
+  /** Platform-assigned agent ID after registration */
+  agentId?: string;
+  /** Platform relay WebSocket endpoint URL */
+  endpoint?: string;
+  /** Whether to forward real-time stream events through relay */
+  streamingEnabled?: boolean;
+  /** Platform auth token */
+  token?: string;
+}
+
+export interface A2AConfig {
+  /** Authorized API key IDs — empty means all of the owner's keys */
+  apiKeyIds?: string[];
+  /** Master toggle for A2A server exposure */
+  enabled?: boolean;
+  /** Outbound relay configuration for NAT traversal */
+  relay?: A2ARelayConfig;
+  /** How member agents map to A2A skills */
+  skillMapping?: 'group-as-one' | 'members-as-skills';
+}
+
 export interface LobeChatGroupChatConfig {
+  a2a?: A2AConfig;
   allowDM?: boolean;
   forkedFromIdentifier?: string;
   openingMessage?: string;
@@ -177,6 +200,21 @@ const TeamConfigSchema = z.object({
 
 // Zod schema for ChatGroupConfig (database insert)
 export const ChatGroupConfigSchema = z.object({
+  a2a: z
+    .object({
+      apiKeyIds: z.array(z.string()).optional(),
+      enabled: z.boolean().optional(),
+      relay: z
+        .object({
+          agentId: z.string().optional(),
+          endpoint: z.string().optional(),
+          streamingEnabled: z.boolean().optional(),
+          token: z.string().optional(),
+        })
+        .optional(),
+      skillMapping: z.enum(['group-as-one', 'members-as-skills']).optional(),
+    })
+    .optional(),
   allowDM: z.boolean().optional(),
   forkedFromIdentifier: z.string().optional(),
   openingMessage: z.string().optional(),

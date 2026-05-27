@@ -15,6 +15,7 @@ import { router } from '@/libs/trpc/lambda';
 import { serverDatabase, telemetry } from '@/libs/trpc/lambda/middleware';
 import { FileService } from '@/server/services/file';
 import { mcpService } from '@/server/services/mcp';
+import { buildA2AManifest, fetchAgentCard } from '@/server/services/mcp/a2aDiscovery';
 import { processContentBlocks } from '@/server/services/mcp/contentProcessor';
 
 import { scheduleToolCallReport } from './_helpers';
@@ -79,6 +80,24 @@ const mcpProcedure = wsCompatProcedure
   });
 
 export const mcpRouter = router({
+  getA2AAgentManifest: mcpProcedure
+    .input(
+      z.object({
+        identifier: z.string().min(1),
+        metadata: z
+          .object({
+            avatar: z.string().optional(),
+            description: z.string().optional(),
+            name: z.string().optional(),
+          })
+          .optional(),
+        url: z.string().url(),
+      }),
+    )
+    .query(async ({ input }) => {
+      const agentCard = await fetchAgentCard(input.url);
+      return buildA2AManifest(agentCard, input.identifier, input.url, input.metadata);
+    }),
   getStreamableMcpServerManifest: mcpProcedure
     .input(GetStreamableMcpServerManifestInputSchema)
     .query(async ({ input }) => {

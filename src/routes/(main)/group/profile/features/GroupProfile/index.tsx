@@ -20,6 +20,7 @@ import { useAgentGroupStore } from '@/store/agentGroup';
 import { agentGroupSelectors } from '@/store/agentGroup/selectors';
 import { useGroupProfileStore } from '@/store/groupProfile';
 
+import A2ASettings from '../A2ASettings';
 import { openGroupAgentSettingsModal } from '../AgentSettings';
 import AutoSaveHint from '../Header/AutoSaveHint';
 import GroupForkTag from './GroupForkTag';
@@ -184,6 +185,11 @@ const GroupProfile = memo(() => {
           </Button>
         </Flexbox>
       </Flexbox>
+      <Divider />
+      {/* A2A Server Settings */}
+      <div onClick={(e) => e.stopPropagation()}>
+        <A2ASettings />
+      </div>
       <Divider />
       {/* Group Content Editor */}
       <EditingIndicator
