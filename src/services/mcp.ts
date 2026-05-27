@@ -247,6 +247,17 @@ class MCPService {
     return superjson.deserialize(serializedResult as any) as any;
   }
 
+  async getA2AAgentManifest(
+    params: {
+      identifier: string;
+      metadata?: CustomPluginMetadata;
+      url: string;
+    },
+    signal?: AbortSignal,
+  ) {
+    return toolsClient.mcp.getA2AAgentManifest.query(params, { signal });
+  }
+
   /**
    * Check MCP plugin installation status
    * @param manifest MCP plugin manifest

@@ -126,8 +126,8 @@ export const useMarketGroupPublish = ({ action, onSuccess }: UseMarketGroupPubli
         identifier: agent.id, // Use local agent ID as identifier
         name: agent.title || 'Untitled Agent',
         role: agent.isSupervisor ? ('supervisor' as const) : ('participant' as const),
-        // TODO: Construct proper A2A URL for the agent
-        url: `https://api.lobehub.com/a2a/agents/${agent.id}`,
+        // A2A endpoint for the group (all members share the same group-level URL)
+        url: `${window.location.origin}/a2a/${currentGroup.id}`,
       }));
 
       // Use tRPC publishOrCreate

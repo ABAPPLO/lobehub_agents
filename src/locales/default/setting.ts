@@ -1449,4 +1449,25 @@ When I am ___, I need ___
   'a2a.name.placeholder': 'e.g. Video Workstation',
   'a2a.name.required': 'Please enter a name',
   'a2a.save': 'Save',
+
+  // Group A2A Server settings
+  'groupA2A.title': 'A2A Service',
+  'groupA2A.skillMapping.label': 'Skill Mapping',
+  'groupA2A.skillMapping.groupAsOne': 'Team as single skill (default)',
+  'groupA2A.skillMapping.membersAsSkills': 'Each member as a skill',
+  'groupA2A.agentCardUrl': 'Agent Card URL',
+  'groupA2A.endpointUrl': 'A2A Endpoint',
+  'groupA2A.authHint': 'Callers must authenticate with a valid API key (Bearer token)',
+
+  'groupA2A.relay.title': 'Relay Connection',
+  'groupA2A.relay.endpoint': 'Relay WebSocket URL',
+  'groupA2A.relay.token': 'Auth Token',
+  'groupA2A.relay.streaming': 'Real-time Streaming',
+  'groupA2A.relay.connect': 'Connect',
+  'groupA2A.relay.disconnect': 'Disconnect',
+  'groupA2A.relay.status.connected': 'Connected',
+  'groupA2A.relay.status.connecting': 'Connecting...',
+  'groupA2A.relay.status.disconnected': 'Disconnected',
+  'groupA2A.relay.status.error': 'Error',
+  'groupA2A.relay.agentId': 'Agent ID',
 };

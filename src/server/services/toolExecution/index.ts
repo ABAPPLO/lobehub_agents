@@ -11,6 +11,7 @@ import {
 
 import { DiscoverService } from '../discover';
 import { type MCPService } from '../mcp';
+import { executeA2AToolCall } from '../mcp/a2aExecution';
 import { type BuiltinToolsExecutor } from './builtin';
 import { classifyToolError } from './errorClassification';
 import {
@@ -78,17 +79,10 @@ export class ToolExecutionService {
     try {
       const typeStr = type as string;
       let data: ToolExecutionResult;
-      switch (typeStr) {
-        case 'mcp': {
-          data = await this.executeMCPTool(payload, context);
-          break;
-        }
-
-        case 'builtin':
-        default: {
-          data = await this.builtinToolsExecutor.execute(payload, context);
-          break;
-        }
+      if (typeStr === 'mcp') {
+        data = await this.executeMCPTool(payload, context);
+      } else {
+        data = await this.builtinToolsExecutor.execute(payload, context);
       }
 
       const executionTime = Date.now() - startTime;
@@ -186,6 +180,11 @@ export class ToolExecutionService {
     );
 
     try {
+      // Check if this is an A2A agent tool
+      if (mcpParams.type === 'a2a') {
+        return await this.executeA2ATool(payload, mcpParams);
+      }
+
       // Check if this is a cloud MCP endpoint
       if (mcpParams.type === 'cloud') {
         return await this.executeCloudMCPTool(payload, context, mcpParams);
@@ -211,6 +210,40 @@ export class ToolExecutionService {
         content: (error as Error).message,
         error: {
           code: 'MCP_EXECUTION_ERROR',
+          message: (error as Error).message,
+        },
+        success: false,
+      };
+    }
+  }
+
+  private async executeA2ATool(
+    payload: ChatToolPayload,
+    mcpParams: { url: string },
+  ): Promise<ToolExecutionResult> {
+    const { identifier, apiName, arguments: args } = payload;
+
+    log('Executing A2A tool: %s:%s via %s', identifier, apiName, mcpParams.url);
+
+    try {
+      const result = await executeA2AToolCall({
+        args,
+        baseUrl: mcpParams.url,
+        toolName: apiName,
+      });
+
+      log('A2A tool execution successful for: %s:%s', identifier, apiName);
+
+      return {
+        content: result.content,
+        success: result.success,
+      };
+    } catch (error) {
+      log('A2A tool execution failed for %s:%s: %O', identifier, apiName, error);
+      return {
+        content: (error as Error).message,
+        error: {
+          code: 'A2A_EXECUTION_ERROR',
           message: (error as Error).message,
         },
         success: false,

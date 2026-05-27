@@ -274,8 +274,8 @@ export class MCPClient {
           {
             originalError: (e as Error).message,
             params: {
-              args: this.params.args,
-              command: this.params.command,
+              args: 'args' in this.params ? (this.params as any).args : undefined,
+              command: 'command' in this.params ? (this.params as any).command : undefined,
               type: this.params.type,
             },
             step: 'mcp_connect',
@@ -287,8 +287,8 @@ export class MCPClient {
       throw createMCPError('UNKNOWN_ERROR', (e as Error).message, {
         originalError: (e as Error).message,
         params: {
-          args: this.params.args,
-          command: this.params.command,
+          args: 'args' in this.params ? (this.params as any).args : undefined,
+          command: 'command' in this.params ? (this.params as any).command : undefined,
           type: this.params.type,
         },
         step: 'mcp_connect',

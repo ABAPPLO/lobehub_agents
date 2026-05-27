@@ -19,6 +19,7 @@ import { ThreadModel } from '@/database/models/thread';
 import { TopicModel } from '@/database/models/topic';
 import { authedProcedure, heteroAuthedProcedure, router } from '@/libs/trpc/lambda';
 import { serverDatabase } from '@/libs/trpc/lambda/middleware';
+import { agentRelayManager } from '@/server/modules/AgentRelay';
 import { AgentRuntimeService } from '@/server/services/agentRuntime';
 import { AiAgentService } from '@/server/services/aiAgent';
 import { AiChatService } from '@/server/services/aiChat';
@@ -1484,5 +1485,27 @@ export const aiAgentRouter = router({
       const token = await signUserJWT(ctx.userId);
 
       return { token };
+    }),
+
+  // --- Agent Relay (Direction B: Local Execution + Relay) ---
+
+  agentRelayStart: aiAgentProcedure
+    .input(z.object({ groupId: z.string() }))
+    .mutation(async ({ input, ctx }) => {
+      const status = await agentRelayManager.startRelay(input.groupId, ctx.userId);
+      return { data: status, success: true };
+    }),
+
+  agentRelayStop: aiAgentProcedure
+    .input(z.object({ groupId: z.string() }))
+    .mutation(async ({ input }) => {
+      await agentRelayManager.stopRelay(input.groupId);
+      return { success: true };
+    }),
+
+  agentRelayStatus: aiAgentProcedure
+    .input(z.object({ groupId: z.string() }))
+    .query(async ({ input }) => {
+      return agentRelayManager.getStatus(input.groupId) ?? { status: 'disconnected' as const };
     }),
 });
