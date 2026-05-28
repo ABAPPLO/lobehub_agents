@@ -8,12 +8,13 @@ export type { RelayStatus } from './AgentRelayManager';
 export { agentRelayManager } from './AgentRelayManager';
 export type {
   RelayClientMessage,
+  RelayClientPing,
   RelayError,
-  RelayPing,
   RelayPong,
   RelayRegister,
   RelayRegistered,
   RelayServerMessage,
+  RelayServerPong,
   RelayStreamEvent,
   RelayTaskAccepted,
   RelayTaskCancel,
