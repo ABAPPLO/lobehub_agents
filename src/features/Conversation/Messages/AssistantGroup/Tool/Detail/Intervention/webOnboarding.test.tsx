@@ -2,7 +2,26 @@
  * @vitest-environment happy-dom
  */
 import { fireEvent, render, screen } from '@testing-library/react';
+import type { ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+// Mock the @lobehub/ui components used by SaveUserQuestion.
+// Both the bare specifier and the pnpm symlink path must be intercepted because
+// @lobechat/builtin-tool-web-onboarding has its own node_modules/@lobehub/ui symlink
+// that resolves to a different physical path than the root hoisted version.
+const uiMock = {
+  EmojiPicker: ({ onChange, value }: { onChange?: (v: string) => void; value?: string }) => (
+    <button data-testid="emoji-picker" type="button" onClick={() => onChange?.('🪶')}>
+      {value || ''}
+    </button>
+  ),
+  Flexbox: ({ children }: { children?: ReactNode; [key: string]: unknown }) => (
+    <div>{children}</div>
+  ),
+  Text: ({ children }: { children?: ReactNode; [key: string]: unknown }) => <span>{children}</span>,
+};
+
+vi.mock('@lobehub/ui', () => uiMock);
 
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
@@ -20,18 +39,6 @@ vi.mock('react-i18next', () => ({
       )[key] || key,
   }),
 }));
-
-// Helper to find the title text rendered by the component
-const getTitleText = (): string | null => {
-  // The title is rendered in a <div> with fontWeight: 600 and fontSize: 16
-  const titleElements = document.querySelectorAll('div[style*="font-weight: 600"]');
-  for (const el of titleElements) {
-    if (el.textContent && el.textContent.includes("I'll update")) {
-      return el.textContent;
-    }
-  }
-  return null;
-};
 
 describe('web onboarding intervention registry', () => {
   let Component: ReturnType<typeof Object> | undefined;
@@ -51,6 +58,7 @@ describe('web onboarding intervention registry', () => {
 
     expect(screen.getByText("I'll update my name and avatar")).toBeInTheDocument();
     expect(screen.getByDisplayValue('Atlas')).toBeInTheDocument();
+    expect(screen.getByText('🛰️')).toBeInTheDocument();
   });
 
   it('uses the name-only title when only agentName is pending', () => {
@@ -105,16 +113,14 @@ describe('web onboarding intervention registry', () => {
     fireEvent.change(screen.getByPlaceholderText('Agent name'), {
       target: { value: 'Aurora' },
     });
-
-    // Click the emoji picker area (rendered by real EmojiPicker, find by its container role)
-    const emojiButton =
-      screen.getByRole('img', { hidden: true })?.closest('[style*="cursor"]') ??
-      document.querySelector('[style*="cursor: pointer"]');
-    if (emojiButton) fireEvent.click(emojiButton);
+    fireEvent.click(screen.getByTestId('emoji-picker'));
 
     expect(beforeApproveCallback).toBeTypeOf('function');
     await beforeApproveCallback!();
 
-    expect(onArgsChange).toHaveBeenCalledWith(expect.objectContaining({ agentName: 'Aurora' }));
+    expect(onArgsChange).toHaveBeenCalledWith({
+      agentEmoji: '🪶',
+      agentName: 'Aurora',
+    });
   });
 });
