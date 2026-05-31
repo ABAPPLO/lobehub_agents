@@ -1,6 +1,8 @@
 'use client';
 
 import { ApiOutlined, CopyOutlined, GlobalOutlined } from '@ant-design/icons';
+import { isDesktop } from '@lobechat/const';
+import { OFFICIAL_URL } from '@lobechat/const/url';
 import { Block, Flexbox, Text } from '@lobehub/ui';
 import { Button, Input, message, Select, Switch, Tag, Typography } from 'antd';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -9,6 +11,8 @@ import { useTranslation } from 'react-i18next';
 import { lambdaClient } from '@/libs/trpc/client';
 import { useAgentGroupStore } from '@/store/agentGroup';
 import { agentGroupSelectors } from '@/store/agentGroup/selectors';
+import { electronSyncSelectors } from '@/store/electron/selectors/sync';
+import { getElectronStoreState } from '@/store/electron/store';
 
 const { Paragraph } = Typography;
 
@@ -51,14 +55,29 @@ const A2ASettings = memo(() => {
     }
   }, [relayConfig.endpoint, relayConfig.token]);
 
+  const serverOrigin = useMemo(() => {
+    if (isDesktop) {
+      const url = electronSyncSelectors.remoteServerUrl(getElectronStoreState());
+      if (url) {
+        try {
+          return new URL(url).origin;
+        } catch {
+          // fallback to OFFICIAL_URL
+        }
+      }
+      return OFFICIAL_URL;
+    }
+    return window.location.origin;
+  }, []);
+
   const agentCardUrl = useMemo(
-    () => (groupId ? `${window.location.origin}/a2a/${groupId}/.well-known/agent.json` : ''),
-    [groupId],
+    () => (groupId ? `${serverOrigin}/a2a/${groupId}/.well-known/agent.json` : ''),
+    [groupId, serverOrigin],
   );
 
   const endpointUrl = useMemo(
-    () => (groupId ? `${window.location.origin}/a2a/${groupId}` : ''),
-    [groupId],
+    () => (groupId ? `${serverOrigin}/a2a/${groupId}` : ''),
+    [groupId, serverOrigin],
   );
 
   const handleToggle = useCallback(
