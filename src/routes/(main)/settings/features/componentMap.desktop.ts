@@ -6,6 +6,7 @@ import Referral from '@/business/client/BusinessSettingPages/Referral';
 import Usage from '@/business/client/BusinessSettingPages/Usage';
 import { SettingsTabs } from '@/store/global/initialState';
 
+import A2AAgent from '../a2a-agent';
 import About from '../about';
 import Advanced from '../advanced';
 import APIKey from '../apikey';
@@ -45,6 +46,7 @@ export const componentMap = {
   [SettingsTabs.Creds]: Creds,
   [SettingsTabs.Security]: Security,
   [SettingsTabs.Skill]: Skill,
+  [SettingsTabs.A2AAgent]: A2AAgent,
 
   [SettingsTabs.Plans]: Plans,
   [SettingsTabs.Credits]: Credits,
