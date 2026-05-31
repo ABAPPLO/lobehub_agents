@@ -100,9 +100,13 @@ vi.mock('@/store/chat', () => ({
 
 const messageSpy = vi.hoisted(() => ({ warning: vi.fn() }));
 
-vi.mock('antd', () => ({
-  message: messageSpy,
-}));
+vi.mock('antd', async () => {
+  const actual = await import('antd');
+  return {
+    ...actual,
+    message: messageSpy,
+  };
+});
 
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({

@@ -1,5 +1,4 @@
 import { act, renderHook } from '@testing-library/react';
-import type * as AntdModule from 'antd';
 import { App } from 'antd';
 import { type Mock } from 'vitest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -14,13 +13,13 @@ import { getContainer, useDragUpload } from './useDragUpload';
 vi.mock('@/hooks/useVisualMediaUploadAbility');
 vi.mock('@/store/agent');
 vi.mock('antd', async () => {
-  const actual = await vi.importActual<typeof AntdModule>('antd');
+  const actual = await import('antd');
   const mockWarning = vi.fn();
 
   return {
     ...actual,
     App: {
-      ...actual.App,
+      ...(actual as any).App,
       useApp: () => ({
         message: {
           warning: mockWarning,

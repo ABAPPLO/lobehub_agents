@@ -20,17 +20,21 @@ vi.mock('@lobehub/ui', () => ({
   Text: ({ children }: { children: ReactNode }) => <span>{children}</span>,
 }));
 
-vi.mock('antd', () => ({
-  Breadcrumb: ({ items }: { items: Array<{ key?: string; title: ReactNode }> }) => (
-    <nav>
-      {items.map((item, index) => (
-        <span data-testid="crumb" key={item.key ?? index}>
-          {item.title}
-        </span>
-      ))}
-    </nav>
-  ),
-}));
+vi.mock('antd', async () => {
+  const actual = await import('antd');
+  return {
+    ...actual,
+    Breadcrumb: ({ items }: { items: Array<{ key?: string; title: ReactNode }> }) => (
+      <nav>
+        {items.map((item, index) => (
+          <span data-testid="crumb" key={item.key ?? index}>
+            {item.title}
+          </span>
+        ))}
+      </nav>
+    ),
+  };
+});
 
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string) => key }),

@@ -53,14 +53,18 @@ vi.mock('@lobehub/ui/icons', () => ({
   GroupBotSquareIcon: () => null,
 }));
 
-vi.mock('antd', () => ({
-  App: {
-    useApp: () => ({
-      message: { error: messageErrorMock },
-      notification: { error: vi.fn() },
-    }),
-  },
-}));
+vi.mock('antd', async () => {
+  const actual = await import('antd');
+  return {
+    ...actual,
+    App: {
+      useApp: () => ({
+        message: { error: messageErrorMock },
+        notification: { error: vi.fn() },
+      }),
+    },
+  };
+});
 
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({

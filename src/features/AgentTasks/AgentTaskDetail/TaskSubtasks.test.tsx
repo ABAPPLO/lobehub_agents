@@ -59,20 +59,24 @@ vi.mock('@lobehub/ui', () => ({
   showContextMenu: vi.fn(),
 }));
 
-vi.mock('antd', () => ({
-  App: {
-    useApp: () => ({
-      message: { error: vi.fn(), info: vi.fn(), success: vi.fn(), warning: vi.fn() },
-      modal: { confirm: vi.fn() },
-    }),
-  },
-  ConfigProvider: ({ children }: { children: ReactNode }) => <>{children}</>,
-  Tree: ({ onSelect }: { onSelect?: (keys: string[]) => void }) => (
-    <button data-testid="subtask-tree-node" type="button" onClick={() => onSelect?.(['T-child'])}>
-      T-child
-    </button>
-  ),
-}));
+vi.mock('antd', async () => {
+  const actual = await import('antd');
+  return {
+    ...actual,
+    App: {
+      useApp: () => ({
+        message: { error: vi.fn(), info: vi.fn(), success: vi.fn(), warning: vi.fn() },
+        modal: { confirm: vi.fn() },
+      }),
+    },
+    ConfigProvider: ({ children }: { children: ReactNode }) => <>{children}</>,
+    Tree: ({ onSelect }: { onSelect?: (keys: string[]) => void }) => (
+      <button data-testid="subtask-tree-node" type="button" onClick={() => onSelect?.(['T-child'])}>
+        T-child
+      </button>
+    ),
+  };
+});
 
 vi.mock('antd-style', () => ({
   cssVar: {

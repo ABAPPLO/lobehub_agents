@@ -32,14 +32,18 @@ vi.mock('@lobehub/ui/base-ui', () => ({
   confirmModal: modalConfirm,
 }));
 
-vi.mock('antd', () => ({
-  App: {
-    useApp: () => ({
-      message: { error: messageError, success: messageSuccess, warning: messageWarning },
-      modal: { confirm: modalConfirm },
-    }),
-  },
-}));
+vi.mock('antd', async () => {
+  const actual = await import('antd');
+  return {
+    ...actual,
+    App: {
+      useApp: () => ({
+        message: { error: messageError, success: messageSuccess, warning: messageWarning },
+        modal: { confirm: modalConfirm },
+      }),
+    },
+  };
+});
 
 vi.mock('@/services/agentDocument', () => ({
   agentDocumentService: {

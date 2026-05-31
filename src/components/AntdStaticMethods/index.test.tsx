@@ -12,11 +12,15 @@ const mockUseApp = {
   notification: { open: vi.fn() },
 };
 
-vi.mock('antd', () => ({
-  App: {
-    useApp: vi.fn(() => mockUseApp),
-  },
-}));
+vi.mock('antd', async () => {
+  const actual = await import('antd');
+  return {
+    ...actual,
+    App: {
+      useApp: vi.fn(() => mockUseApp),
+    },
+  };
+});
 
 describe('EntryComponent', () => {
   it('should correctly initialize message, modal, and notification', () => {

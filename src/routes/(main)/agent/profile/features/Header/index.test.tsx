@@ -67,18 +67,22 @@ vi.mock('@lobehub/ui/icons', () => ({
   ShapesUploadIcon: () => null,
 }));
 
-vi.mock('antd', () => ({
-  App: {
-    useApp: () => ({
-      modal: {
-        confirm: vi.fn(),
-      },
-    }),
-  },
-  Modal: {
-    confirm: vi.fn(),
-  },
-}));
+vi.mock('antd', async () => {
+  const actual = await import('antd');
+  return {
+    ...actual,
+    App: {
+      useApp: () => ({
+        modal: {
+          confirm: vi.fn(),
+        },
+      }),
+    },
+    Modal: {
+      confirm: vi.fn(),
+    },
+  };
+});
 
 vi.mock('lucide-react', () => ({
   BotMessageSquareIcon: () => null,

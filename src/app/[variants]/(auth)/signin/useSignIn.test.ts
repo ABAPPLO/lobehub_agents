@@ -80,7 +80,7 @@ const mockGetFieldValue = vi.fn();
 const mockValidateFields = vi.fn();
 const mockSubmit = vi.fn();
 vi.mock('antd', async () => {
-  const actual: any = await vi.importActual('antd');
+  const actual = await import('antd');
   return {
     ...actual,
     Form: {

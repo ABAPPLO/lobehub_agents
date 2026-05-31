@@ -33,9 +33,13 @@ vi.mock('@lobehub/ui', () => ({
   Text: ({ children }: { children?: ReactNode }) => <span>{children}</span>,
 }));
 
-vi.mock('antd', () => ({
-  Divider: () => <hr />,
-}));
+vi.mock('antd', async () => {
+  const actual = await import('antd');
+  return {
+    ...actual,
+    Divider: () => <hr />,
+  };
+});
 
 vi.mock('@/components/Descriptions', () => ({
   default: ({

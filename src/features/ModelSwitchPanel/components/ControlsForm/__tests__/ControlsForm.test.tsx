@@ -34,8 +34,10 @@ vi.mock('@lobehub/ui', () => {
   return { Form: MockForm };
 });
 
-vi.mock('antd', () => {
+vi.mock('antd', async () => {
+  const actual = await import('antd');
   return {
+    ...actual,
     Form: { useWatch: vi.fn(() => undefined) },
     Grid: { useBreakpoint: () => ({ sm: true }) },
     Switch: () => <input type="checkbox" />,

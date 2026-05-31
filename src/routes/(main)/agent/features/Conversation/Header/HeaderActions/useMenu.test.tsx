@@ -28,14 +28,18 @@ vi.mock('@lobehub/ui', () => ({
   Icon: () => null,
 }));
 
-vi.mock('antd', () => ({
-  App: {
-    useApp: () => ({
-      message: { success: messageSuccessMock },
-      modal: { confirm: modalConfirmMock },
-    }),
-  },
-}));
+vi.mock('antd', async () => {
+  const actual = await import('antd');
+  return {
+    ...actual,
+    App: {
+      useApp: () => ({
+        message: { success: messageSuccessMock },
+        modal: { confirm: modalConfirmMock },
+      }),
+    },
+  };
+});
 
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({

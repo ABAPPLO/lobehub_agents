@@ -48,7 +48,8 @@ vi.mock('@lobehub/ui', () => ({
   ),
 }));
 
-vi.mock('antd', () => {
+vi.mock('antd', async () => {
+  const actual = await import('antd');
   const ListItem = ({ children, onClick }: { children: ReactNode; onClick?: () => void }) => (
     <div role="listitem" onClick={onClick}>
       {children}
@@ -66,6 +67,7 @@ vi.mock('antd', () => {
   List.Item = ListItem;
 
   return {
+    ...actual,
     App: {
       useApp: () => ({
         message: {

@@ -36,9 +36,13 @@ vi.mock('@lobehub/ui', () => ({
   Text: ({ children }: { children: ReactNode }) => <span>{children}</span>,
 }));
 
-vi.mock('antd', () => ({
-  Progress: () => <span>progress</span>,
-}));
+vi.mock('antd', async () => {
+  const actual = await import('antd');
+  return {
+    ...actual,
+    Progress: () => <span>progress</span>,
+  };
+});
 
 vi.mock('antd-style', () => ({
   cssVar: { colorSuccess: 'green' },

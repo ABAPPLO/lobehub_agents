@@ -11,17 +11,21 @@ const messageLoadingMock = vi.hoisted(() => vi.fn());
 const messageDestroyMock = vi.hoisted(() => vi.fn());
 const messageErrorMock = vi.hoisted(() => vi.fn());
 
-vi.mock('antd', () => ({
-  App: {
-    useApp: () => ({
-      message: {
-        destroy: messageDestroyMock,
-        error: messageErrorMock,
-        loading: messageLoadingMock,
-      },
-    }),
-  },
-}));
+vi.mock('antd', async () => {
+  const actual = await import('antd');
+  return {
+    ...actual,
+    App: {
+      useApp: () => ({
+        message: {
+          destroy: messageDestroyMock,
+          error: messageErrorMock,
+          loading: messageLoadingMock,
+        },
+      }),
+    },
+  };
+});
 
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
