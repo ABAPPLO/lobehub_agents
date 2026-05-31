@@ -43,18 +43,15 @@ vi.mock('@lobehub/ui', () => ({
   Text: ({ children }: { children?: ReactNode }) => <div>{children}</div>,
 }));
 
-vi.mock('antd', async (importOriginal) => {
-  const actual = await importOriginal();
-  return {
-    ...actual,
-    App: {
-      useApp: () => ({
-        message: { error: messageError, success: messageSuccess },
-        modal: { confirm: modalConfirm },
-      }),
-    },
-  };
-});
+vi.mock('antd', () => ({
+  App: {
+    useApp: () => ({
+      message: { error: messageError, success: messageSuccess },
+      modal: { confirm: modalConfirm },
+    }),
+  },
+  Upload: () => null,
+}));
 
 vi.mock('@/components/NeuralNetworkLoading', () => ({
   default: () => <div data-testid="neural-network-loading" />,
