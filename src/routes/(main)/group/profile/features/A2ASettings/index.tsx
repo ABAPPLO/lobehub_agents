@@ -1,8 +1,7 @@
 'use client';
 
 import { ApiOutlined, CopyOutlined, GlobalOutlined } from '@ant-design/icons';
-import { isDesktop } from '@lobechat/const';
-import { OFFICIAL_URL } from '@lobechat/const/url';
+import { isDesktop, OFFICIAL_URL } from '@lobechat/const';
 import { Block, Flexbox, Text } from '@lobehub/ui';
 import { Button, Input, message, Select, Switch, Tag, Typography } from 'antd';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
