@@ -22,12 +22,14 @@ vi.mock('react-i18next', () => ({
   }),
 }));
 
-// The real @lobehub/ui Text component may wrap text in nested spans,
-// so use a function matcher for flexible text queries.
-const hasText = (text: string) => (_: unknown, el: Element | null) => {
+// The real @lobehub/ui Text component wraps text in nested spans, so exact
+// string matching fails. Use textContent-based matching that finds the
+// innermost element containing the expected text.
+const hasText = (text: string) => (content: string, el: Element | null) => {
   if (!el) return false;
-  const children = Array.from(el.childNodes);
-  return children.some((c) => c.nodeType === 3 && c.textContent?.trim() === text);
+  if (!content.includes(text)) return false;
+  // Prefer the innermost element — skip if any child already contains the text
+  return !Array.from(el.children).some((child) => child.textContent?.includes(text));
 };
 
 describe('web onboarding intervention registry', () => {
@@ -91,6 +93,7 @@ describe('web onboarding intervention registry', () => {
       };
     };
 
+    const user = userEvent.setup();
     render(
       <Component
         args={{ agentEmoji: '🛰️', agentName: 'Atlas' }}
@@ -100,9 +103,8 @@ describe('web onboarding intervention registry', () => {
       />,
     );
 
-    fireEvent.change(screen.getByPlaceholderText('Agent name'), {
-      target: { value: 'Aurora' },
-    });
+    await user.clear(screen.getByPlaceholderText('Agent name'));
+    await user.type(screen.getByPlaceholderText('Agent name'), 'Aurora');
 
     // Click the emoji picker area — the real EmojiPicker renders a clickable container
     const emojiArea = document.querySelector('[style*="cursor: pointer"]');
