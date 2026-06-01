@@ -2,6 +2,7 @@
  * @vitest-environment happy-dom
  */
 import { fireEvent, render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('react-i18next', () => ({
@@ -67,13 +68,14 @@ describe('web onboarding intervention registry', () => {
     expect(screen.queryByText(hasText("I'll update my name and avatar"))).not.toBeInTheDocument();
   });
 
-  it('flips title to combined when user types a name into an emoji-only proposal', () => {
+  it('flips title to combined when user types a name into an emoji-only proposal', async () => {
     if (!Component) throw new TypeError('Expected web onboarding intervention to be registered');
 
+    const user = userEvent.setup();
     render(<Component args={{ agentEmoji: '🛰️' }} messageId="message-4" />);
 
     expect(screen.getByText(hasText("I'll update my avatar"))).toBeInTheDocument();
-    fireEvent.change(screen.getByPlaceholderText('Agent name'), { target: { value: 'Atlas' } });
+    await user.type(screen.getByPlaceholderText('Agent name'), 'Atlas');
     expect(screen.getByText(hasText("I'll update my name and avatar"))).toBeInTheDocument();
   });
 
