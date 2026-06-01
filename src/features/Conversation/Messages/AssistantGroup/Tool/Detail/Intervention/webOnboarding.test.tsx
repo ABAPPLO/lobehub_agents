@@ -21,6 +21,14 @@ vi.mock('react-i18next', () => ({
   }),
 }));
 
+// The real @lobehub/ui Text component may wrap text in nested spans,
+// so use a function matcher for flexible text queries.
+const hasText = (text: string) => (_: unknown, el: Element | null) => {
+  if (!el) return false;
+  const children = Array.from(el.childNodes);
+  return children.some((c) => c.nodeType === 3 && c.textContent?.trim() === text);
+};
+
 describe('web onboarding intervention registry', () => {
   let Component: ReturnType<typeof Object> | undefined;
 
@@ -37,7 +45,7 @@ describe('web onboarding intervention registry', () => {
 
     render(<Component args={{ agentEmoji: '🛰️', agentName: 'Atlas' }} messageId="message-1" />);
 
-    expect(screen.getByText("I'll update my name and avatar")).toBeInTheDocument();
+    expect(screen.getByText(hasText("I'll update my name and avatar"))).toBeInTheDocument();
     expect(screen.getByDisplayValue('Atlas')).toBeInTheDocument();
   });
 
@@ -46,8 +54,8 @@ describe('web onboarding intervention registry', () => {
 
     render(<Component args={{ agentName: 'Atlas' }} messageId="message-2" />);
 
-    expect(screen.getByText("I'll update my name")).toBeInTheDocument();
-    expect(screen.queryByText("I'll update my name and avatar")).not.toBeInTheDocument();
+    expect(screen.getByText(hasText("I'll update my name"))).toBeInTheDocument();
+    expect(screen.queryByText(hasText("I'll update my name and avatar"))).not.toBeInTheDocument();
   });
 
   it('uses the avatar-only title when only agentEmoji is pending', () => {
@@ -55,8 +63,8 @@ describe('web onboarding intervention registry', () => {
 
     render(<Component args={{ agentEmoji: '🛰️' }} messageId="message-3" />);
 
-    expect(screen.getByText("I'll update my avatar")).toBeInTheDocument();
-    expect(screen.queryByText("I'll update my name and avatar")).not.toBeInTheDocument();
+    expect(screen.getByText(hasText("I'll update my avatar"))).toBeInTheDocument();
+    expect(screen.queryByText(hasText("I'll update my name and avatar"))).not.toBeInTheDocument();
   });
 
   it('flips title to combined when user types a name into an emoji-only proposal', () => {
@@ -64,9 +72,9 @@ describe('web onboarding intervention registry', () => {
 
     render(<Component args={{ agentEmoji: '🛰️' }} messageId="message-4" />);
 
-    expect(screen.getByText("I'll update my avatar")).toBeInTheDocument();
+    expect(screen.getByText(hasText("I'll update my avatar"))).toBeInTheDocument();
     fireEvent.change(screen.getByPlaceholderText('Agent name'), { target: { value: 'Atlas' } });
-    expect(screen.getByText("I'll update my name and avatar")).toBeInTheDocument();
+    expect(screen.getByText(hasText("I'll update my name and avatar"))).toBeInTheDocument();
   });
 
   it('flushes edited name and emoji to onArgsChange when approve is requested', async () => {
