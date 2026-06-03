@@ -1508,4 +1508,30 @@ export const aiAgentRouter = router({
     .query(async ({ input }) => {
       return agentRelayManager.getStatus(input.groupId) ?? { status: 'disconnected' as const };
     }),
+
+  // --- Individual Agent A2A Relay ---
+
+  agentA2ARelayStart: aiAgentProcedure
+    .input(z.object({ agentId: z.string() }))
+    .mutation(async ({ input, ctx }) => {
+      const status = await agentRelayManager.startAgentRelay(input.agentId, ctx.userId);
+      return { data: status, success: true };
+    }),
+
+  agentA2ARelayStop: aiAgentProcedure
+    .input(z.object({ agentId: z.string() }))
+    .mutation(async ({ input }) => {
+      await agentRelayManager.stopAgentRelay(input.agentId);
+      return { success: true };
+    }),
+
+  agentA2ARelayStatus: aiAgentProcedure
+    .input(z.object({ agentId: z.string() }))
+    .query(async ({ input }) => {
+      return (
+        agentRelayManager.getAgentRelayStatus(input.agentId) ?? {
+          status: 'disconnected' as const,
+        }
+      );
+    }),
 });

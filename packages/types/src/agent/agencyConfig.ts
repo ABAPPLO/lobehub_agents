@@ -1,3 +1,5 @@
+import type { A2AConfig } from '../agentGroup';
+
 /**
  * Heterogeneous agent provider configuration.
  * When set, the assistant delegates execution to an external agent runtime
@@ -51,6 +53,8 @@ export type HeteroExecutionTarget = 'device' | 'local' | 'sandbox';
  * Contains settings for agent execution modes and device binding.
  */
 export interface LobeAgentAgencyConfig {
+  /** A2A protocol configuration for exposing the agent as an A2A endpoint. */
+  a2a?: A2AConfig;
   /**
    * Device ID of the machine connected via `lh connect`.
    * Required when `executionTarget === 'device'` (and always set for remote

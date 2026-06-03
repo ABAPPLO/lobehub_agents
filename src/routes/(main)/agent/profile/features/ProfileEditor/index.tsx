@@ -14,6 +14,7 @@ import { agentSelectors } from '@/store/agent/selectors';
 
 import AgentSettings from '../AgentSettings';
 import EditorCanvas from '../EditorCanvas';
+import AgentA2ASettings from './AgentA2ASettings';
 import AgentHeader from './AgentHeader';
 import AgentTool from './AgentTool';
 import CloudHeterogeneousConfig from './CloudHeterogeneousConfig';
@@ -128,6 +129,11 @@ const ProfileEditor = memo(() => {
       <Divider />
       {/* Main Content: Prompt Editor */}
       <EditorCanvas />
+      <Divider />
+      {/* A2A Service Settings */}
+      <div onClick={(e) => e.stopPropagation()}>
+        <AgentA2ASettings />
+      </div>
       {/* Advanced Settings Modal */}
       <AgentSettings />
     </>
