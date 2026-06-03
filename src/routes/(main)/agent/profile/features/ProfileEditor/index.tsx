@@ -15,6 +15,7 @@ import { useAgentStore } from '@/store/agent';
 import { agentSelectors } from '@/store/agent/selectors';
 
 import EditorCanvas from '../EditorCanvas';
+import AgentA2ASettings from './AgentA2ASettings';
 import AgentHeader from './AgentHeader';
 import AgentTool from './AgentTool';
 import CloudHeterogeneousConfig from './CloudHeterogeneousConfig';
@@ -164,6 +165,13 @@ const ProfileEditor = memo(() => {
           editor here to avoid a control that looks effective but isn't (mirrors the
           ModelSelect hiding above). */}
       {!isHeterogeneous && <EditorCanvas />}
+
+      {/* A2A Service Settings */}
+      <div onClick={(e) => e.stopPropagation()}>
+        <AgentA2ASettings />
+      </div>
+      {/* Advanced Settings Modal */}
+      <AgentSettings />
     </>
   );
 });

@@ -1,8 +1,11 @@
 import type { A2ARelayConfig } from '@lobechat/types';
 import debug from 'debug';
+import { eq } from 'drizzle-orm';
 
 import { getServerDB } from '@/database/core/db-adaptor';
 import { AgentGroupRepository } from '@/database/repositories/agentGroup';
+import { agents } from '@/database/schemas';
+import { buildSingleAgentCard } from '@/server/a2a-hono/utils/buildSingleAgentCard';
 import { buildAgentCard } from '@/server/a2a-hono/utils/buildSkills';
 import { StreamEventManager } from '@/server/modules/AgentRuntime/StreamEventManager';
 
@@ -104,7 +107,7 @@ class AgentRelayManager {
     );
 
     // Create bridge with proper connection reference
-    const bridge = new TaskBridge(
+    const bridge = TaskBridge.forGroup(
       groupId,
       detail.userId,
       connection,
@@ -146,6 +149,128 @@ class AgentRelayManager {
 
   getStatus(groupId: string): RelayStatus | undefined {
     const managed = this.connections.get(groupId);
+    if (!managed) return undefined;
+    return {
+      status: managed.connection.getStatus(),
+    };
+  }
+
+  // ---------- Agent Relay ----------
+
+  async startAgentRelay(agentId: string, userId: string): Promise<RelayStatus> {
+    log('startAgentRelay called for agent %s', agentId);
+    const connectionKey = `agent:${agentId}`;
+
+    await this.stopAgentRelay(agentId);
+
+    const db = await getServerDB();
+    const agent = await db.query.agents.findFirst({
+      where: eq(agents.id, agentId),
+    });
+
+    if (!agent) {
+      throw new Error('Agent not found');
+    }
+
+    const agencyConfig = agent.agencyConfig as any;
+    const a2aConfig = agencyConfig?.a2a as { relay?: A2ARelayConfig } | undefined;
+    const relayConfig = a2aConfig?.relay;
+
+    if (!relayConfig?.endpoint) {
+      throw new Error('Relay endpoint not configured');
+    }
+
+    const baseUrl = relayConfig.endpoint.replace(/\/ws.*$/, '');
+    const agentCard = buildSingleAgentCard(agent, baseUrl);
+
+    let registeredAgentId = relayConfig.agentId;
+    if (!registeredAgentId) {
+      try {
+        const registerResponse = await fetch(`${baseUrl}/api/v1/agents/register`, {
+          body: JSON.stringify({ agentCard }),
+          headers: { 'Content-Type': 'application/json' },
+          method: 'POST',
+        });
+
+        if (registerResponse.ok) {
+          const data = await registerResponse.json();
+          registeredAgentId = data.agentId;
+          log('Registered agent with platform, agentId=%s', registeredAgentId);
+        } else {
+          log(
+            'Agent registration failed: %d %s',
+            registerResponse.status,
+            await registerResponse.text(),
+          );
+        }
+      } catch (err) {
+        log('Agent registration request failed: %O', err);
+      }
+    }
+
+    const onMessage = (msg: RelayServerMessage) => {
+      const managed = this.connections.get(connectionKey);
+      if (managed) {
+        this.handleMessage(connectionKey, managed.bridge, msg);
+      } else {
+        log('Received message for agent %s but no managed connection found', agentId);
+      }
+    };
+
+    const connection = new AgentRelayConnection(
+      connectionKey,
+      relayConfig,
+      {
+        onMessage,
+        onStatusChange: (status: RelayConnectionStatus) => {
+          log('Agent relay status changed for %s: %s', agentId, status);
+        },
+      },
+      (...args: any[]) => log('AgentRelay [%s]:', agentId, ...args),
+    );
+
+    const bridge = TaskBridge.forAgent(
+      agentId,
+      agent.userId,
+      connection,
+      relayConfig.streamingEnabled ?? false,
+    );
+
+    try {
+      const streamManager = new StreamEventManager();
+      bridge.setStreamManager(streamManager);
+    } catch {
+      log('StreamEventManager not available — streaming disabled');
+    }
+
+    this.connections.set(connectionKey, { bridge, connection });
+
+    await connection.connect();
+
+    if (!registeredAgentId) {
+      connection.send({ type: 'register', agentCard });
+    }
+
+    return {
+      agentId: registeredAgentId,
+      status: connection.getStatus(),
+    };
+  }
+
+  async stopAgentRelay(agentId: string): Promise<void> {
+    const connectionKey = `agent:${agentId}`;
+    const managed = this.connections.get(connectionKey);
+    if (managed) {
+      managed.bridge.cleanup();
+      managed.connection.disconnect();
+      this.connections.delete(connectionKey);
+      log('Agent relay stopped for %s', agentId);
+    }
+  }
+
+  getAgentRelayStatus(agentId: string): RelayStatus | undefined {
+    const connectionKey = `agent:${agentId}`;
+    const managed = this.connections.get(connectionKey);
     if (!managed) return undefined;
     return {
       status: managed.connection.getStatus(),

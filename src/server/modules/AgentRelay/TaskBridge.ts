@@ -45,11 +45,31 @@ export class TaskBridge {
   private streamManager: StreamEventManager | null = null;
 
   constructor(
-    private groupId: string,
+    private mode: 'agent' | 'group',
+    private entityId: string,
     private ownerUserId: string,
     private connection: AgentRelayConnection,
     private streamingEnabled: boolean = false,
   ) {}
+
+  /** @deprecated Use mode-based constructor instead. Kept for backward compat. */
+  static forGroup(
+    groupId: string,
+    ownerUserId: string,
+    connection: AgentRelayConnection,
+    streamingEnabled: boolean = false,
+  ): TaskBridge {
+    return new TaskBridge('group', groupId, ownerUserId, connection, streamingEnabled);
+  }
+
+  static forAgent(
+    agentId: string,
+    ownerUserId: string,
+    connection: AgentRelayConnection,
+    streamingEnabled: boolean = false,
+  ): TaskBridge {
+    return new TaskBridge('agent', agentId, ownerUserId, connection, streamingEnabled);
+  }
 
   setStreamManager(manager: StreamEventManager): void {
     this.streamManager = manager;
@@ -72,33 +92,60 @@ export class TaskBridge {
 
     try {
       const db = await getServerDB();
-      const repo = new AgentGroupRepository(db, this.ownerUserId);
-      const detail = await repo.findByIdWithAgents(this.groupId);
-
-      if (!detail?.supervisorAgentId) {
-        this.connection.send({
-          type: 'task_failed',
-          taskId,
-          error: 'No supervisor agent found for this group',
-        });
-        return;
-      }
-
       const aiAgentService = new AiAgentService(db, this.ownerUserId);
-      const result = await aiAgentService.execGroupAgent({
-        agentId: detail.supervisorAgentId,
-        groupId: this.groupId,
-        message: textContent,
-        newTopic: { title: `Relay: ${textContent.slice(0, 50)}` },
-      });
 
-      if (!result.success) {
-        this.connection.send({
-          type: 'task_failed',
-          taskId,
-          error: 'Agent execution failed to start',
+      let operationId: string;
+      let topicId: string | undefined;
+
+      if (this.mode === 'agent') {
+        const result = await aiAgentService.execAgent({
+          agentId: this.entityId,
+          autoStart: true,
+          prompt: textContent,
         });
-        return;
+
+        if (!result.success) {
+          this.connection.send({
+            type: 'task_failed',
+            taskId,
+            error: 'Agent execution failed to start',
+          });
+          return;
+        }
+
+        operationId = result.operationId;
+        topicId = result.topicId;
+      } else {
+        const repo = new AgentGroupRepository(db, this.ownerUserId);
+        const detail = await repo.findByIdWithAgents(this.entityId);
+
+        if (!detail?.supervisorAgentId) {
+          this.connection.send({
+            type: 'task_failed',
+            taskId,
+            error: 'No supervisor agent found for this group',
+          });
+          return;
+        }
+
+        const result = await aiAgentService.execGroupAgent({
+          agentId: detail.supervisorAgentId,
+          groupId: this.entityId,
+          message: textContent,
+          newTopic: { title: `Relay: ${textContent.slice(0, 50)}` },
+        });
+
+        if (!result.success) {
+          this.connection.send({
+            type: 'task_failed',
+            taskId,
+            error: 'Agent execution failed to start',
+          });
+          return;
+        }
+
+        operationId = result.operationId;
+        topicId = result.topicId;
       }
 
       // Store A2A task ID in operation metadata
@@ -107,7 +154,7 @@ export class TaskBridge {
         .set({
           metadata: sql`COALESCE(metadata, '{}'::jsonb) || ${JSON.stringify({ a2aTaskId: taskId })}::jsonb`,
         })
-        .where(eq(agentOperations.id, result.operationId));
+        .where(eq(agentOperations.id, operationId));
 
       // Send accepted
       this.connection.send({
@@ -122,13 +169,11 @@ export class TaskBridge {
 
       // Subscribe to stream events if enabled
       if (this.streamingEnabled && this.streamManager) {
-        this.subscribeToStreamEvents(taskId, result.operationId, abortController.signal);
+        this.subscribeToStreamEvents(taskId, operationId, abortController.signal);
       }
 
       // Subscribe to completion — use setImmediate to avoid blocking
-      setImmediate(() =>
-        this.pollForCompletion(taskId, result.operationId, abortController.signal),
-      );
+      setImmediate(() => this.pollForCompletion(taskId, operationId, abortController.signal));
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown error';
       this.connection.send({

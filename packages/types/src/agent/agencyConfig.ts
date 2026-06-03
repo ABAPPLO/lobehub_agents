@@ -1,3 +1,5 @@
+import type { A2AConfig } from '../agentGroup';
+
 /**
  * Selector value that means "do not override the underlying CLI".
  *
@@ -391,6 +393,8 @@ export type DeviceExecutionTarget = 'auto' | 'device' | 'local' | 'none' | 'sand
  * Contains settings for agent execution modes and device binding.
  */
 export interface LobeAgentAgencyConfig {
+  /** A2A protocol configuration for exposing the agent as an A2A endpoint. */
+  a2a?: A2AConfig;
   /**
    * Device ID of the machine connected via `lh connect`.
    * Required when `executionTarget === 'device'`. Also persisted for desktop
