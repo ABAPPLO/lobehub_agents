@@ -100,18 +100,22 @@ export class ChatGroupCurdAction {
       ...config,
     };
 
-    // Update the database first
-    await chatGroupService.updateGroup(group.id, { config: mergedConfig });
-
-    // Immediately update the local store to ensure configuration is available
-    // Note: reducer expects payload: { id, value }
+    // 1. Optimistic update (instant UI feedback)
     this.#get().internal_dispatchChatGroup({
       payload: { id: group.id, value: { config: mergedConfig } },
       type: 'updateGroup',
     });
 
-    // Refresh groups to ensure consistency
-    await this.#get().refreshGroupDetail(group.id);
+    try {
+      // 2. Persist to database
+      await chatGroupService.updateGroup(group.id, { config: mergedConfig });
+    } catch {
+      // On failure, revert to previous config
+      this.#get().internal_dispatchChatGroup({
+        payload: { id: group.id, value: { config: group.config } },
+        type: 'updateGroup',
+      });
+    }
   };
 
   updateGroupMeta = async (meta: Partial<ChatGroupItem>) => {
