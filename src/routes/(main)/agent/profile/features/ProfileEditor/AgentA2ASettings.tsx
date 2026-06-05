@@ -1,15 +1,17 @@
 'use client';
 
 import { ApiOutlined, CopyOutlined, GlobalOutlined } from '@ant-design/icons';
+import { isDesktop, OFFICIAL_URL } from '@lobechat/const';
 import { Block, Flexbox, Text } from '@lobehub/ui';
 import { Button, Input, message, Switch, Tag, Typography } from 'antd';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { useAppOrigin } from '@/hooks/useAppOrigin';
 import { lambdaClient } from '@/libs/trpc/client';
 import { useAgentStore } from '@/store/agent';
 import { agentSelectors } from '@/store/agent/selectors';
+import { useElectronStore } from '@/store/electron';
+import { electronSyncSelectors } from '@/store/electron/selectors';
 
 const { Paragraph } = Typography;
 
@@ -25,7 +27,20 @@ const AgentA2ASettings = memo(() => {
   const activeAgentId = useAgentStore((s) => s.activeAgentId);
   const config = useAgentStore(agentSelectors.currentAgentConfig);
   const updateConfig = useAgentStore((s) => s.updateAgentConfig);
-  const serverOrigin = useAppOrigin();
+  const serverOrigin = useMemo(() => {
+    if (isDesktop) {
+      const url = electronSyncSelectors.remoteServerUrl(useElectronStore.getState());
+      if (url) {
+        try {
+          return new URL(url).origin;
+        } catch {
+          // fallback to OFFICIAL_URL
+        }
+      }
+      return OFFICIAL_URL;
+    }
+    return window.location.origin;
+  }, []);
 
   const agencyConfig = config?.agencyConfig;
   const a2aConfig = (agencyConfig as any)?.a2a;
