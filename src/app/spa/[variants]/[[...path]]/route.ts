@@ -32,6 +32,54 @@ export function generateStaticParams() {
 }
 
 const isDev = process.env.NODE_ENV === 'development';
+const VITE_DEV_ORIGIN = process.env.VITE_DEV_ORIGIN || 'http://localhost:9876';
+
+async function rewriteViteAssetUrls(html: string): Promise<string> {
+  const { parseHTML } = await import('linkedom');
+  const { document } = parseHTML(html);
+
+  document.querySelectorAll('script[src]').forEach((el: Element) => {
+    const src = el.getAttribute('src');
+    if (src && src.startsWith('/')) {
+      el.setAttribute('src', `${VITE_DEV_ORIGIN}${src}`);
+    }
+  });
+
+  document.querySelectorAll('link[href]').forEach((el: Element) => {
+    const href = el.getAttribute('href');
+    if (href && href.startsWith('/')) {
+      el.setAttribute('href', `${VITE_DEV_ORIGIN}${href}`);
+    }
+  });
+
+  document.querySelectorAll('script[type="module"]:not([src])').forEach((el: Element) => {
+    const text = el.textContent || '';
+    if (text.includes('/@')) {
+      el.textContent = text.replaceAll(
+        /from\s+["'](\/[@\w].*?)["']/g,
+        (_match: string, p: string) => `from "${VITE_DEV_ORIGIN}${p}"`,
+      );
+    }
+  });
+
+  const workerPatch = document.createElement('script');
+  workerPatch.textContent = `(function(){
+var O=globalThis.Worker;
+globalThis.Worker=function(u,o){
+var h=typeof u==='string'?u:u instanceof URL?u.href:'';
+if(h.startsWith('${VITE_DEV_ORIGIN}')){
+var b=new Blob(['import "'+h+'";'],{type:'application/javascript'});
+return new O(URL.createObjectURL(b),Object.assign({},o,{type:'module'}));
+}return new O(u,o)};
+globalThis.Worker.prototype=O.prototype;
+})();`;
+  const head = document.querySelector('head');
+  if (head?.firstChild) {
+    head.insertBefore(workerPatch, head.firstChild);
+  }
+
+  return document.toString();
+}
 
 async function getTemplate(isMobile: boolean): Promise<string> {
   if (isDev) return fetchViteDevTemplate();

@@ -302,10 +302,10 @@ export default defineConfig({
     host: true,
     port: 9876,
     proxy: {
-      '/api': `http://localhost:${process.env.PORT || 3010}`,
-      '/oidc': `http://localhost:${process.env.PORT || 3010}`,
-      '/trpc': `http://localhost:${process.env.PORT || 3010}`,
-      '/webapi': `http://localhost:${process.env.PORT || 3010}`,
+      '/api': `http://0.0.0.0:${process.env.PORT || 3010}`,
+      '/oidc': `http://0.0.0.0:${process.env.PORT || 3010}`,
+      '/trpc': `http://0.0.0.0:${process.env.PORT || 3010}`,
+      '/webapi': `http://0.0.0.0:${process.env.PORT || 3010}`,
     },
     warmup: {
       clientFiles: [

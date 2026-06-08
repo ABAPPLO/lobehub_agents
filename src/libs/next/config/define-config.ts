@@ -62,7 +62,7 @@ export function defineConfig(config: CustomNextConfig) {
 
   const nextConfig: NextConfig = {
     ...(isStandaloneMode ? standaloneConfig : {}),
-    allowedDevOrigins: ['127.0.0.1'],
+    allowedDevOrigins: ['127.0.0.1', '10.168.1.112'],
     assetPrefix,
 
     compiler: {
