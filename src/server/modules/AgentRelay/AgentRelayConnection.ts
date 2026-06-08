@@ -95,7 +95,11 @@ export class AgentRelayConnection {
         return;
       }
 
-      const url = this.config.endpoint!;
+      let url = this.config.endpoint!;
+      if (this.config.token) {
+        const sep = url.includes('?') ? '&' : '?';
+        url = `${url}${sep}token=${encodeURIComponent(this.config.token)}`;
+      }
       const ws = new WebSocket(url);
       this.ws = ws;
 
