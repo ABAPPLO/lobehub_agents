@@ -170,8 +170,6 @@ const ProfileEditor = memo(() => {
       <div onClick={(e) => e.stopPropagation()}>
         <AgentA2ASettings />
       </div>
-      {/* Advanced Settings Modal */}
-      <AgentSettings />
     </>
   );
 });

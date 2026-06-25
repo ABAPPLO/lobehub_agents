@@ -25,7 +25,7 @@ const STATUS_COLORS: Record<string, string> = {
 const A2ASettings = memo(() => {
   const { t } = useTranslation('setting');
   const groupId = useAgentGroupStore(agentGroupSelectors.activeGroupId);
-  const currentGroup = useAgentGroupStore(agentGroupSelectors.currentGroup);
+  const currentGroup = useAgentGroupStore(agentGroupSelectors.getGroupById(groupId ?? ''));
   const updateGroupConfig = useAgentGroupStore((s) => s.updateGroupConfig);
 
   const a2aConfig = (currentGroup?.config as any)?.a2a;

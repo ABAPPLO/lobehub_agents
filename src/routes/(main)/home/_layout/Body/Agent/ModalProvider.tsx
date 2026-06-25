@@ -170,7 +170,6 @@ export const AgentModalProvider = memo<AgentModalProviderProps>(({ children }) =
         setGroupWizardOpen(false);
         setMemberSelectionOpen(false);
         setCreateModalOpen(false);
-        setCreatePlatformAgentOpen(false);
         setTeamBuilderOpen(false);
       },
       closeConfigGroupModal: () => setConfigGroupModalOpen(false),
