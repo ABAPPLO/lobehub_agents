@@ -13,6 +13,7 @@ import { useGroupProfileStore } from '@/store/groupProfile';
 import { type HomeStore } from '@/store/home/store';
 import { type StoreSetter } from '@/store/types';
 import { markdownToTxt } from '@/utils/markdownToTxt';
+import { getStableNavigate } from '@/utils/stableNavigate';
 import { setNamespace } from '@/utils/storeDebug';
 
 import { type StarterMode } from './initialState';
