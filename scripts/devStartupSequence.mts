@@ -260,7 +260,15 @@ const main = async () => {
     forceKillChildren();
   });
 
-  nextProcess = spawn('bunx', ['next', 'dev', '-p', String(nextPort)], {
+  // Optional bind host for `next dev`. Defaults to Next.js' own default
+  // (localhost); set NEXT_BIND_HOST=0.0.0.0 to expose the dev server so another
+  // machine (e.g. the desktop app on Windows) can reach it over the LAN.
+  // Read AFTER loadEnv() so values from .env.development.local are visible.
+  const bindHost = process.env.NEXT_BIND_HOST;
+  const nextArgs = ['dev', '-p', String(nextPort)];
+  if (bindHost) nextArgs.push('-H', bindHost);
+
+  nextProcess = spawn('bunx', ['next', ...nextArgs], {
     detached: !isWindows,
     env: process.env,
     stdio: 'inherit',
