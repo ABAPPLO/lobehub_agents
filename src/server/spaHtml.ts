@@ -2,7 +2,22 @@ import { analyticsEnv } from '@/envs/analytics';
 import { serializeForHtml } from '@/server/utils/serializeForHtml';
 import { type AnalyticsConfig } from '@/types/spaServerConfig';
 
-export const VITE_DEV_ORIGIN = 'http://localhost:9876';
+/**
+ * Origin the *browser* uses to load Vite dev assets (HMR client, entry modules,
+ * favicons). Defaults to localhost; set VITE_DEV_ORIGIN (e.g.
+ * http://10.168.1.112:9876) when the SPA is opened from another machine — e.g.
+ * the desktop client on Windows connecting to a dev instance over the LAN — so
+ * the served HTML points asset URLs at a host the browser can actually reach.
+ *
+ * The Next.js server always fetches the template from the LOCAL Vite dev server
+ * (VITE_DEV_FETCH_ORIGIN below); only the asset URLs handed to the browser use
+ * this origin, because the server and the browser may reach Vite via different
+ * hosts.
+ */
+export const VITE_DEV_ORIGIN = process.env.VITE_DEV_ORIGIN || 'http://localhost:9876';
+
+/** Origin the Next.js server uses to fetch the Vite dev template (always local). */
+const VITE_DEV_FETCH_ORIGIN = 'http://localhost:9876';
 
 const SERVER_CONFIG_PLACEHOLDER =
   /window\.__SERVER_CONFIG__\s*=\s*undefined;\s*\/\*\s*SERVER_CONFIG\s*\*\//;
@@ -58,7 +73,7 @@ export async function fetchViteDevTemplate(
   pathname = '/',
   origin = VITE_DEV_ORIGIN,
 ): Promise<string> {
-  const res = await fetch(`${origin}${pathname}`);
+  const res = await fetch(`${VITE_DEV_FETCH_ORIGIN}${pathname}`);
   const html = await res.text();
 
   return rewriteViteAssetUrls(html, origin);
