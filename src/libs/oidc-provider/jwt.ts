@@ -6,8 +6,9 @@ import { authEnv } from '@/envs/auth';
 const log = debug('oidc-jwt');
 
 /**
- * Get JWKS key string from environment
- * Uses JWKS_KEY which already has fallback to OIDC_JWKS_KEY in authEnv
+ * Get JWKS key string from environment.
+ * Reads JWKS_KEY directly. (The former OIDC_JWKS_KEY env var was renamed to
+ * JWKS_KEY; there is no fallback — set JWKS_KEY, not OIDC_JWKS_KEY.)
  */
 const getJwksKeyString = () => {
   return authEnv.JWKS_KEY;
